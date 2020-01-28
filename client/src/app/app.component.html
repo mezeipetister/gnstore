@@ -1,1 +1,6 @@
-<app-login></app-login>
+<app-login *ngIf="!loginStatus"></app-login>
+<section *ngIf="loginStatus">
+    <div class="container">
+        <button class="button" (click)="logout()">Logout</button>
+    </div>
+</section>

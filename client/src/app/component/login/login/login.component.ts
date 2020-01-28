@@ -10,12 +10,8 @@ export class LoginComponent implements OnInit {
 
   username: string;
   password: string;
-  loginStatus: boolean;
 
-  constructor(private loginService: LoginService) {
-    this.loginService.isLoggedIn.subscribe(value => this.loginStatus = value);
-    this.loginService.ping();
-  }
+  constructor(private loginService: LoginService) { }
 
   ngOnInit() {
 
