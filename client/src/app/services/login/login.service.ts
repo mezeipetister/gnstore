@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject, EMPTY } from 'rxjs';
 import { DataService, Login } from '../data/data.service';
 import { Ok, Err, Result } from 'ts-results';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Injectable({
   providedIn: 'root'
@@ -54,7 +55,7 @@ export class LoginService {
   login: (username: string, password: string) =>
     void = function (username: string, password: string) {
       this.dataService.login(username, password).subscribe((data: Login) =>
-        this.setToken(data.token).unwrap());
+        this.setToken(data.token).unwrap(), () => this.logout());
     }
 
   logout: () => void = function (): void {
