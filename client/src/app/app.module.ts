@@ -8,11 +8,15 @@ import { AppComponent } from './app.component';
 import { DataService } from './services/data/data.service';
 import { LoginService } from './services/login/login.service';
 import { LoginComponent } from './component/login/login/login.component';
+import { NavbarComponent } from './component/partial/navbar/navbar.component';
+import { PasswordresetComponent } from './component/login/passwordreset/passwordreset.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent
+    LoginComponent,
+    NavbarComponent,
+    PasswordresetComponent
   ],
   imports: [
     BrowserModule,

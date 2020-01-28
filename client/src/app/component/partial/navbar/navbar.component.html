@@ -1,0 +1,67 @@
+<nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="https://bulma.io">
+                <strong>Gardenova</strong>
+            </a>
+
+            <a role="button" class="navbar-burger burger" [ngClass]="{'is-active': isActive}" aria-label="menu"
+                aria-expanded="false" data-target="navbarBasicExample" (click)="isActive = isActive ? false : true">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+
+        <div id="navbarBasicExample" class="navbar-menu" [ngClass]="{'is-active': isActive}">
+            <div class="navbar-start">
+                <a class="navbar-item">
+                    Értékesítés
+                </a>
+
+                <a class="navbar-item">
+                    Termékek
+                </a>
+
+                <a class="navbar-item">
+                    Vásárlók
+                </a>
+
+                <a class="navbar-item">
+                    Issue(s)
+                </a>
+
+                <div class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">
+                        Egyéb
+                    </a>
+
+                    <div class="navbar-dropdown">
+                        <a class="navbar-item">
+                            Szoftver dokumentáció
+                        </a>
+                        <a class="navbar-item">
+                            Céges adatok
+                        </a>
+                        <a class="navbar-item">
+                            Jogi anyagok
+                        </a>
+                        <hr class="navbar-divider">
+                        <a class="navbar-item">
+                            I 💝 Gardenova
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <a href="#" class="navbar-item">Mezei Péter</a>
+                    <div class="buttons">
+                        <button class="button" (click)="logout()">Kijelentkezés</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
