@@ -31,21 +31,25 @@ impl Fairing for CORS {
     }
 
     fn on_response(&self, request: &Request, response: &mut Response) {
-        if request.method() == Method::Options || response.content_type() == Some(ContentType::JSON)
-        {
-            // Allow API requests from anywhere
-            response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-            response.set_header(Header::new(
-                "Access-Control-Allow-Methods",
-                "POST, GET, OPTIONS, PUT, DELETE",
-            ));
-            response.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
-            response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
-        }
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
+        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        // if request.method() == Method::Options || response.content_type() == Some(ContentType::JSON)
+        // {
+        //     // Allow API requests from anywhere
+        //     response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        //     response.set_header(Header::new(
+        //         "Access-Control-Allow-Methods",
+        //         "POST, GET, OPTIONS, PUT, DELETE",
+        //     ));
+        //     response.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
+        //     response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        // }
 
-        if request.method() == Method::Options {
-            response.set_header(ContentType::Plain);
-            response.set_sized_body(Cursor::new(""));
-        }
+        // if request.method() == Method::Options {
+
+        //     response.set_header(ContentType::Plain);
+        //     response.set_sized_body(Cursor::new(""));
+        // }
     }
 }

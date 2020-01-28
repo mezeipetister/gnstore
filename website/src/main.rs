@@ -25,6 +25,11 @@ extern crate ifeq;
 extern crate num_format;
 #[macro_use]
 extern crate rocket_contrib;
+extern crate crypto;
+extern crate jwt;
+extern crate rocket_cors;
+extern crate rustc_serialize;
+extern crate serde;
 extern crate serde_derive;
 extern crate storaget;
 
@@ -33,8 +38,6 @@ pub mod guard;
 pub mod login;
 pub mod prelude;
 
-use crate::core_lib::Account;
-use crate::core_lib::Transaction;
 use crate::prelude::CheckError;
 use crate::prelude::FlashOk;
 use chrono::prelude::*;
@@ -43,42 +46,64 @@ use core_lib::user;
 use core_lib::user::User;
 use core_lib::user::UserV1;
 use core_lib::user::*;
-use core_lib::Account1;
-use core_lib::Transaction1;
 use cors::CORS;
 use guard::*;
 use login::*;
-use prelude::{Check, FlashRedirect};
-use rocket::http::Cookies;
-use rocket::request::{FlashMessage, Form};
-use rocket::response::{Flash, NamedFile, Redirect};
+use prelude::Check;
+use rocket::http::Status;
+use rocket::request::Form;
+use rocket::response::NamedFile;
 use rocket::Request;
 use rocket::State;
 use rocket_contrib::json::{Json, JsonValue};
+use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 use storaget::*;
 
+#[derive(Serialize)]
+struct Response<'a, T: 'a> {
+    api_version: &'a str,
+    response: T,
+}
+
 #[get("/")]
-fn index() -> JsonValue {
-    json!({"status": "HelloWorld"})
+fn index(_user: Login) -> JsonValue {
+    json!({"status": "GNStore API"})
+}
+
+#[derive(Serialize, Deserialize)]
+struct FormLogin {
+    username: String,
+    password: String,
+}
+
+#[post("/login", data = "<login>")]
+fn login(login: Json<FormLogin>, data: State<DataLoad>) -> Result<JsonValue, Status> {
+    // Temp login to admin
+    // TODO: Remove this part, vulnerable code
+    if login.username == "admin".to_owned() && login.password == "admin".to_owned() {
+        return Ok(json!({"token": create_token(&login.username)}));
+    } else {
+        return Err(Status::Unauthorized);
+    }
 }
 
 #[get("/long")]
-fn get_long() -> JsonValue {
+fn get_long(_user: Login) -> JsonValue {
     std::thread::sleep(std::time::Duration::from_secs(3));
     json!({"msg": "It was long!"})
 }
 
 #[get("/quick")]
-fn get_quick() -> JsonValue {
+fn get_quick(_user: Login) -> JsonValue {
     json!({"msg": "It was quick!"})
 }
 
-// #[get("/")]
-// fn index(user: Login, flash: Option<FlashMessage>) -> JsonValue {
-//     json!({"status": "HelloWorld"})
-// }
+#[get("/private")]
+fn private(user: Login) -> JsonValue {
+    json!({ "msg": format!("Ok, {}", user.userid()) })
+}
 
 #[get("/static/<file..>")]
 pub fn static_file(file: PathBuf) -> Option<NamedFile> {
@@ -86,38 +111,49 @@ pub fn static_file(file: PathBuf) -> Option<NamedFile> {
 }
 
 #[catch(404)]
-fn not_found(req: &Request<'_>) -> JsonValue {
-    json!({"status":"Not found"})
+fn not_found(_: &Request<'_>) -> JsonValue {
+    json!({"status":"Request not found"})
 }
 
 #[catch(401)]
-fn unauthorized(req: &Request<'_>) -> Flash<Redirect> {
-    Flash::new(
-        Redirect::to("/login"),
-        "LOGIN_REDIRECT_TO",
-        req.route().unwrap().uri.path(),
-    )
+fn unauthorized(_: &Request<'_>) -> JsonValue {
+    json!({"status":"UnAuthorized"})
 }
 
 fn rocket(data: DataLoad) -> rocket::Rocket {
+    let mut methods = std::collections::HashSet::new();
+    methods.insert(rocket_cors::Method::from(rocket::http::Method::Post));
+    methods.insert(rocket_cors::Method::from(rocket::http::Method::Get));
+    methods.insert(rocket_cors::Method::from(rocket::http::Method::Put));
+    methods.insert(rocket_cors::Method::from(rocket::http::Method::Delete));
+    methods.insert(rocket_cors::Method::from(rocket::http::Method::Options));
+
+    // You can also deserialize this
+    let cors = rocket_cors::CorsOptions {
+        allowed_origins: rocket_cors::AllOrSome::All,
+        allowed_methods: methods,
+        allowed_headers: AllowedHeaders::All,
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors()
+    .unwrap();
+
     rocket::ignite()
-        .attach(CORS())
+        .attach(cors)
+        // .attach(CORS())
         .manage(data)
-        .mount("/", routes![index, get_long, get_quick])
+        .mount("/", routes![index, get_long, get_quick, login, private])
         .register(catchers![not_found, unauthorized])
 }
 
 struct DataLoad {
     users: Storage<UserV1>,
-    accounts: Storage<Account1>,
-    transactions: Storage<Transaction1>,
 }
 
 fn main() -> StorageResult<()> {
     let data = DataLoad {
         users: Storage::load_or_init::<UserV1>("data/users")?,
-        accounts: Storage::load_or_init::<Account1>("data/accounts")?,
-        transactions: Storage::load_or_init::<Transaction1>("data/transactions")?,
     };
     rocket(data).launch();
     Ok(())

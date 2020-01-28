@@ -1,0 +1,35 @@
+<section class="section">
+    <div class="container">
+        <h2>User is logged in: {{loginStatus}}</h2>
+        <p class="has-text-centered title is-spaced">Gardenova</p>
+        <p class="subtitle has-text-centered is-size-6">Bejelentkezés a Gardenova Kft <br> eladói rendszerébe</p>
+        <div class="columns is-mobile">
+            <div class="column is-6-mobile is-offset-3-mobile is-4-desktop is-offset-4-desktop">
+                <form (ngSubmit)="login()">
+                    <div class="field">
+                        <label class="label">Felhasználói név</label>
+                        <div class="control">
+                            <input class="input" type="text" placeholder="e.g John Smith" [(ngModel)]="username"
+                                name="username">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Jelszó</label>
+                        <div class="control">
+                            <input class="input" type="password" placeholder="erős jelszó" [(ngModel)]="password"
+                                name="password">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <div class="buttons">
+                                <button class="button is-info is-outlined" type="submit">Bejelentkezés</button>
+                                <button class="button">Elfelejtett jelszó</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

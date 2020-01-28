@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Project A.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::login::verify_token;
 use crate::DataLoad;
 use core_lib::user;
 use core_lib::user::User;
@@ -41,29 +42,38 @@ impl Login {
     }
 }
 
-// TODO: ERROR: An instance of `Cookies` must be dropped before another can be retrieved.
+// TODO: Rewrite to JWT like, using Yew we do not have access to Cookies.
 impl<'a, 'r> FromRequest<'a, 'r> for Login {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Login, ()> {
         // Add LOGIN REDIRECT IF PATH EXIST
-        let data = request.guard::<State<DataLoad>>()?;
-        let userid = match &request.cookies().get_private("USERID") {
-            Some(userid) => userid.value().to_owned(),
+        // let data = request.guard::<State<DataLoad>>()?;
+        match &request.headers().get_one("token") {
+            Some(token) => match verify_token(token) {
+                Some(uid) => {
+                    return Outcome::Success(Login {
+                        userid: uid,
+                        name: "".to_owned(),
+                        email: "".to_owned(),
+                    })
+                }
+                None => return Outcome::Failure((Status::Unauthorized, ())),
+            },
             None => {
                 return Outcome::Failure((Status::Unauthorized, ()));
             }
         };
-        match user::get_user_by_id(&data.inner().users, &userid) {
-            Ok(user) => {
-                let login = Login {
-                    userid: userid,
-                    name: user.get(|u| u.get_user_name().into()),
-                    email: user.get(|u| u.get_user_email().into()),
-                };
-                Outcome::Success(login)
-            }
-            Err(_) => Outcome::Failure((Status::Unauthorized, ())),
-        }
+        // match user::get_user_by_id(&data.inner().users, &userid) {
+        //     Ok(user) => {
+        //         let login = Login {
+        //             userid: userid,
+        //             name: user.get(|u| u.get_user_name().into()),
+        //             email: user.get(|u| u.get_user_email().into()),
+        //         };
+        //         Outcome::Success(login)
+        //     }
+        //     Err(_) => Outcome::Failure((Status::Unauthorized, ())),
+        // }
     }
 }
