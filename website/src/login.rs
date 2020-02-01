@@ -39,7 +39,10 @@ pub fn create_token(user_id: &str) -> Option<String> {
 }
 
 pub fn verify_token(token: &str) -> Option<String> {
-    let token = Token::<Header, Custom>::parse(token).unwrap();
+    let token = match Token::<Header, Custom>::parse(token) {
+        Ok(v) => v,
+        Err(_) => return None,
+    };
 
     if token.verify(b"secret_key", Sha256::new()) {
         Some(token.claims.uid)

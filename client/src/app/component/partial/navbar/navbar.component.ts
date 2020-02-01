@@ -10,7 +10,7 @@ export class NavbarComponent implements OnInit {
 
   constructor(private loginService: LoginService) { }
 
-  isActive: false;
+  isActive: boolean = false;
 
   ngOnInit() {
   }
