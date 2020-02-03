@@ -195,7 +195,7 @@ impl User for UserV1 {
         self.password_hash = hash_password(&new_password)?;
         match email::new(
             &self.get_user_email(),
-            "New password generated",
+            "Gardenova ÚJ JELSZÓ",
             &format!(
                 "A felhasználói neved: {}\nAz új jelszavad: {}",
                 self.get_user_id(),
