@@ -136,7 +136,13 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
         .mount("/", routes![index])
         .mount(
             "/api",
-            routes![controller::login::post, controller::login::reset_password],
+            routes![
+                controller::login::post,
+                controller::login::reset_password,
+                controller::profile::profile_get,
+                controller::profile::profile_post,
+                controller::profile::password_change
+            ],
         )
         .register(catchers![not_found, unauthorized])
 }
