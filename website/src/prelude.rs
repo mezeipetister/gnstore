@@ -15,48 +15,117 @@
 // You should have received a copy of the GNU General Public License
 // along with Project A.  If not, see <http://www.gnu.org/licenses/>.
 
-use core_lib::Error;
-use maud::Markup;
-use rocket::response::{Flash, Redirect};
-use std::fmt::Display;
+use rocket::http::{ContentType, Status};
+use rocket::response::{Responder, Response};
+use rocket::Request;
+use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
+use std::io::Cursor;
 
-pub type FlashRedirect = Result<Redirect, Flash<Redirect>>;
-pub type FlashOk = Result<Markup, Flash<Redirect>>;
-
-pub trait Check<T> {
-    fn check(self, redirect_to: &str) -> Result<T, Flash<Redirect>>;
-}
-
-pub trait CheckError<T> {
-    fn check_error(self, err: Error, redirect_to: &str) -> Result<T, Flash<Redirect>>;
-}
-
-impl<T, E> Check<T> for Result<T, E>
+#[derive(Debug)]
+// Wrapper for 200 Ok response code
+pub struct StatusOk<T>(pub T)
 where
-    E: Display,
+    T: Serialize + Debug;
+// Wrapper for 201 Created response code
+pub struct StatusCreated<T>(pub T)
+where
+    T: Serialize + Debug;
+// Wrapper for 202 Accepted response code
+pub struct StatusAccepted<T>(pub T)
+where
+    T: Serialize + Debug;
+
+// Rocket responder for custom Ok status
+impl<'r, T> Responder<'static> for StatusOk<T>
+where
+    T: Serialize + Debug,
 {
-    fn check(self, redirect_to: &str) -> Result<T, Flash<Redirect>> {
-        match self {
-            Ok(ok) => Ok(ok),
-            Err(msg) => Err(Flash::warning(
-                Redirect::to(redirect_to.to_owned()),
-                format!("{}", msg),
-            )),
-        }
+    fn respond_to(self, _: &Request) -> Result<Response<'static>, Status> {
+        Response::build()
+            .header(ContentType::JSON)
+            .status(Status::Ok)
+            .sized_body(Cursor::new(serde_json::to_string(&self.0).unwrap()))
+            .ok()
     }
 }
 
-impl<T, E> CheckError<T> for Result<T, E>
+// Rocket responder for custom Ok status
+impl<'r, T> Responder<'static> for StatusCreated<T>
 where
-    E: Display,
+    T: Serialize + Debug,
 {
-    fn check_error(self, err: Error, redirect_to: &str) -> Result<T, Flash<Redirect>> {
-        match self {
-            Ok(ok) => Ok(ok),
-            Err(_) => Err(Flash::warning(
-                Redirect::to(redirect_to.to_owned()),
-                format!("{}", err),
-            )),
-        }
+    fn respond_to(self, _: &Request) -> Result<Response<'static>, Status> {
+        Response::build()
+            .header(ContentType::JSON)
+            .status(Status::Created)
+            .sized_body(Cursor::new(serde_json::to_string(&self.0).unwrap()))
+            .ok()
+    }
+}
+
+// Rocket responder for custom Ok status
+impl<'r, T> Responder<'static> for StatusAccepted<T>
+where
+    T: Serialize + Debug,
+{
+    fn respond_to(self, _: &Request) -> Result<Response<'static>, Status> {
+        Response::build()
+            .header(ContentType::JSON)
+            .status(Status::Accepted)
+            .sized_body(Cursor::new(serde_json::to_string(&self.0).unwrap()))
+            .ok()
+    }
+}
+
+// API Error response scheme
+// Use it for all the API error response
+#[derive(Serialize, Deserialize, Debug)]
+struct ApiErrorScheme {
+    message: &'static str,
+}
+
+impl ApiErrorScheme {
+    fn new(message: &'static str) -> Self {
+        ApiErrorScheme { message }
+    }
+}
+
+// API Error type
+#[derive(Debug)]
+pub enum ApiError {
+    BadRequest(&'static str),
+    InternalError(&'static str),
+    NotFound,
+    Unauthorized,
+}
+
+// Rocket responder for ApiError
+impl<'r> Responder<'static> for ApiError {
+    fn respond_to(self, _: &Request) -> Result<Response<'static>, Status> {
+        Response::build()
+            .header(ContentType::JSON)
+            .status(match self {
+                ApiError::BadRequest(_) => Status::BadRequest,
+                ApiError::InternalError(_) => Status::InternalServerError,
+                ApiError::NotFound => Status::NotFound,
+                ApiError::Unauthorized => Status::Unauthorized,
+            })
+            .sized_body(Cursor::new(match self {
+                ApiError::BadRequest(message) => {
+                    serde_json::to_string(&ApiErrorScheme::new(message)).unwrap()
+                }
+                ApiError::InternalError(message) => {
+                    serde_json::to_string(&ApiErrorScheme::new(message)).unwrap()
+                }
+                ApiError::NotFound => {
+                    serde_json::to_string(&ApiErrorScheme::new("Page not found")).unwrap()
+                }
+                ApiError::Unauthorized => {
+                    serde_json::to_string(&ApiErrorScheme::new("Unauthorized! Please login key"))
+                        .unwrap()
+                }
+            }))
+            .ok()
     }
 }

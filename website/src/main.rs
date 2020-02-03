@@ -33,91 +33,81 @@ extern crate serde;
 extern crate serde_derive;
 extern crate storaget;
 
+pub mod controller;
 pub mod cors;
 pub mod guard;
 pub mod login;
 pub mod prelude;
 
-use crate::prelude::CheckError;
-use crate::prelude::FlashOk;
-use chrono::prelude::*;
-use core_lib::prelude::AppResult;
-use core_lib::user;
-use core_lib::user::User;
+// use core_lib::prelude::AppResult;
+// use core_lib::user;
+// use core_lib::user::User;
 use core_lib::user::UserV1;
-use core_lib::user::*;
-use cors::CORS;
+// use core_lib::user::*;
 use guard::*;
-use login::*;
-use prelude::Check;
-use rocket::http::Status;
-use rocket::request::Form;
-use rocket::response::NamedFile;
+// use login::*;
+use crate::prelude::*;
+use rocket::http::Method::*;
 use rocket::Request;
-use rocket::State;
-use rocket_contrib::json::{Json, JsonValue};
-use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
-use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+use rocket::Route;
+use rocket_cors::AllowedHeaders;
+use serde::Serialize;
 use storaget::*;
 
-#[derive(Serialize)]
-struct Response<'a, T: 'a> {
-    api_version: &'a str,
-    response: T,
+#[derive(Debug, Serialize)]
+struct User {
+    name: String,
 }
 
 #[get("/")]
-fn index(_user: Login) -> JsonValue {
-    json!({"status": "GNStore API"})
+fn index() -> String {
+    "Gardenova Welcome".to_owned()
 }
 
-#[derive(Serialize, Deserialize)]
-struct FormLogin {
-    username: String,
-    password: String,
+#[derive(Debug, Serialize)]
+struct ApiWelcomeSchema {
+    message: &'static str,
 }
 
-#[post("/login", data = "<login>")]
-fn login(login: Json<FormLogin>, data: State<DataLoad>) -> Result<JsonValue, Status> {
-    // Temp login to admin
-    // TODO: Remove this part, vulnerable code
-    if login.username == "admin".to_owned() && login.password == "admin".to_owned() {
-        return Ok(json!({"token": create_token(&login.username)}));
-    } else {
-        return Err(Status::Unauthorized);
-    }
+#[get("/")]
+fn api_welcome(_user: Login) -> StatusOk<ApiWelcomeSchema> {
+    StatusOk(ApiWelcomeSchema {
+        message: "Welcome to Gardenova API",
+    })
 }
 
-#[get("/long")]
-fn get_long(_user: Login) -> JsonValue {
-    std::thread::sleep(std::time::Duration::from_secs(3));
-    json!({"msg": "It was long!"})
-}
+// #[get("/long")]
+// fn get_long(_user: Login) -> JsonValue {
+//     std::thread::sleep(std::time::Duration::from_secs(3));
+//     json!({"msg": "It was long!"})
+// }
 
 #[get("/quick")]
-fn get_quick(_user: Login) -> JsonValue {
-    json!({"msg": "It was quick!"})
+fn get_quick() -> Result<StatusCreated<User>, ApiError> {
+    Ok(StatusCreated(User {
+        name: "Peti".to_owned(),
+    }))
+    // Err(ApiError::BadRequest("Oooo"))
 }
 
-#[get("/private")]
-fn private(user: Login) -> JsonValue {
-    json!({ "msg": format!("Ok, {}", user.userid()) })
-}
+// #[get("/private")]
+// fn private(user: Login) -> JsonValue {
+//     json!({ "msg": format!("Ok, {}", user.userid()) })
+// }
 
-#[get("/static/<file..>")]
-pub fn static_file(file: PathBuf) -> Option<NamedFile> {
-    NamedFile::open(Path::new("static/").join(file)).ok()
-}
+// #[get("/static/<file..>")]
+// pub fn static_file(file: PathBuf) -> Option<NamedFile> {
+//     NamedFile::open(Path::new("static/").join(file)).ok()
+// }
 
 #[catch(404)]
-fn not_found(_: &Request<'_>) -> JsonValue {
-    json!({"status":"Request not found"})
+fn not_found(_: &Request<'_>) -> ApiError {
+    ApiError::NotFound
 }
 
 #[catch(401)]
-fn unauthorized(_: &Request<'_>) -> JsonValue {
-    json!({"status":"UnAuthorized"})
+fn unauthorized(_: &Request<'_>) -> ApiError {
+    ApiError::Unauthorized
 }
 
 fn rocket(data: DataLoad) -> rocket::Rocket {
@@ -143,11 +133,15 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
         .attach(cors)
         // .attach(CORS())
         .manage(data)
-        .mount("/", routes![index, get_long, get_quick, login, private])
+        .mount("/", routes![index])
+        .mount(
+            "/api",
+            routes![controller::login::post, controller::login::reset_password],
+        )
         .register(catchers![not_found, unauthorized])
 }
 
-struct DataLoad {
+pub struct DataLoad {
     users: Storage<UserV1>,
 }
 

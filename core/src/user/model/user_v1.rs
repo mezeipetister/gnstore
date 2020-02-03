@@ -197,7 +197,7 @@ impl User for UserV1 {
             &self.get_user_email(),
             "New password generated",
             &format!(
-                "Your username is: {}\nYour new password is: {}",
+                "A felhasználói neved: {}\nAz új jelszavad: {}",
                 self.get_user_id(),
                 &new_password
             ),
