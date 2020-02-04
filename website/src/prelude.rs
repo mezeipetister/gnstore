@@ -119,12 +119,13 @@ impl<'r> Responder<'static> for ApiError {
                     serde_json::to_string(&ApiErrorScheme::new(message)).unwrap()
                 }
                 ApiError::NotFound => {
-                    serde_json::to_string(&ApiErrorScheme::new("Page not found")).unwrap()
-                }
-                ApiError::Unauthorized => {
-                    serde_json::to_string(&ApiErrorScheme::new("Unauthorized! Please login key"))
+                    serde_json::to_string(&ApiErrorScheme::new("A kért oldal nem található"))
                         .unwrap()
                 }
+                ApiError::Unauthorized => serde_json::to_string(&ApiErrorScheme::new(
+                    "Ön nincs bejelentkezve! Jelentkezzen be!",
+                ))
+                .unwrap(),
             }))
             .ok()
     }
