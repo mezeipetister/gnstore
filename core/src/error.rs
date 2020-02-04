@@ -19,6 +19,7 @@ use std::fmt;
 use storaget;
 
 pub enum Error {
+    BadRequest(String),
     InternalError(String),
 }
 
@@ -27,6 +28,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Error::BadRequest(msg) => write!(f, "{}", msg),
             Error::InternalError(msg) => write!(f, "Internal error: {}", msg),
         }
     }
@@ -35,6 +37,7 @@ impl fmt::Display for Error {
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Error::BadRequest(msg) => write!(f, "{}", msg),
             Error::InternalError(msg) => write!(f, "Internal error: {}", msg),
         }
     }

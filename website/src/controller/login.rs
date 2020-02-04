@@ -49,11 +49,11 @@ pub fn post(
     // TODO: Remove this part, vulnerable code
     let username = match &login.username {
         Some(username) => username,
-        None => return Err(ApiError::BadRequest("Hiányzó felhasználói név")),
+        None => return Err(ApiError::BadRequest("Hiányzó felhasználói név".to_owned())),
     };
     let password = match &login.password {
         Some(password) => password,
-        None => return Err(ApiError::BadRequest("Hiányzó jelszó")),
+        None => return Err(ApiError::BadRequest("Hiányzó jelszó".to_owned())),
     };
     if username == "admin" && password == "admin" {
         return Ok(StatusOk(UserToken {
@@ -75,7 +75,7 @@ pub fn post(
         }
     }
 
-    return Err(ApiError::BadRequest("Helytelen belépési adatok"));
+    return Err(ApiError::BadRequest("Helytelen belépési adatok".to_owned()));
 }
 
 #[derive(Serialize, Deserialize)]
@@ -90,16 +90,24 @@ pub fn reset_password(
 ) -> Result<StatusAccepted<()>, ApiError> {
     let email = match &form.email {
         Some(email) => email,
-        None => return Err(ApiError::BadRequest("Hiányzó email cím")),
+        None => return Err(ApiError::BadRequest("Hiányzó email cím".to_owned())),
     };
 
     let user = match user::get_user_by_email(&data.inner().users, email) {
         Ok(user) => user,
-        Err(_) => return Err(ApiError::BadRequest("A felhasználó nem található")),
+        Err(_) => {
+            return Err(ApiError::BadRequest(
+                "A felhasználó nem található".to_owned(),
+            ))
+        }
     };
 
     match &user.update(|u| u.reset_password()) {
         Ok(()) => return Ok(StatusAccepted(())),
-        Err(_) => return Err(ApiError::InternalError("Hiba az új jelszó beállításánál")),
+        Err(_) => {
+            return Err(ApiError::InternalError(
+                "Hiba az új jelszó beállításánál".to_owned(),
+            ))
+        }
     };
 }

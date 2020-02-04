@@ -45,7 +45,11 @@ pub fn profile_get(user: Login, data: State<DataLoad>) -> Result<StatusOk<Profil
             });
             return Ok(StatusOk(profile));
         }
-        Err(_) => return Err(ApiError::InternalError("A felhasználó nem található.")),
+        Err(_) => {
+            return Err(ApiError::InternalError(
+                "A felhasználó nem található.".to_owned(),
+            ))
+        }
     };
 }
 
@@ -57,15 +61,15 @@ pub fn profile_post(
 ) -> Result<StatusOk<Profile>, ApiError> {
     let _ = match &form.username {
         Some(u) => u,
-        None => return Err(ApiError::BadRequest("Hiányzó usernév mező")),
+        None => return Err(ApiError::BadRequest("Hiányzó usernév mező".to_owned())),
     };
     let email = match &form.email {
         Some(e) => e,
-        None => return Err(ApiError::BadRequest("Hiányzó email mező")),
+        None => return Err(ApiError::BadRequest("Hiányzó email mező".to_owned())),
     };
     let name = match &form.name {
         Some(n) => n,
-        None => return Err(ApiError::BadRequest("Hiányzó név mező")),
+        None => return Err(ApiError::BadRequest("Hiányzó név mező".to_owned())),
     };
     match user::get_user_by_id(&data.inner().users, &user.userid()) {
         Ok(usr) => {
@@ -83,10 +87,14 @@ pub fn profile_post(
                     };
                     return Ok(StatusOk(p));
                 }
-                Err(_) => return Err(ApiError::BadRequest("Hibás adatok")),
+                Err(_) => return Err(ApiError::BadRequest("Hibás adatok".to_owned())),
             }
         }
-        Err(_) => return Err(ApiError::InternalError("A felhasználó nem található.")),
+        Err(_) => {
+            return Err(ApiError::InternalError(
+                "A felhasználó nem található.".to_owned(),
+            ))
+        }
     };
 }
 
@@ -104,7 +112,7 @@ pub fn password_change(
 ) -> Result<StatusOk<()>, ApiError> {
     if form.password1 != form.password2 {
         return Err(ApiError::BadRequest(
-            "A két jelszó nem egyezik meg egymással",
+            "A két jelszó nem egyezik meg egymással".to_owned(),
         ));
     }
     match user::get_user_by_id(&data.inner().users, &user.userid()) {
@@ -112,10 +120,10 @@ pub fn password_change(
             Ok(_) => return Ok(StatusOk(())),
             Err(_) => {
                 return Err(ApiError::InternalError(
-                    "Az új jelszó beállítása sikertelen",
+                    "Az új jelszó beállítása sikertelen".to_owned(),
                 ))
             }
         },
-        Err(_) => return Err(ApiError::InternalError("Azonosítási hiba")),
+        Err(_) => return Err(ApiError::InternalError("Azonosítási hiba".to_owned())),
     }
 }

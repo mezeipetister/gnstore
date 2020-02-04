@@ -3,13 +3,19 @@ use crate::prelude::*;
 
 pub fn check_email(address: &str) -> AppResult<()> {
     if !address.contains("@") {
-        return Err(InternalError("Wrong email format. Missing @.".into()));
+        return Err(BadRequest(
+            "Nem megfelelő email formátum. Hiányzó karakter: @.".into(),
+        ));
     }
     if !address.contains(".") {
-        return Err(InternalError("Wrong email format. Missing dot.".into()));
+        return Err(BadRequest(
+            "Nem megfelelő email formátum. Hiányzó karakter: (pont).".into(),
+        ));
     }
     if address.len() < 4 {
-        return Err(InternalError("Wrong email format. Too short.".into()));
+        return Err(BadRequest(
+            "Nem megfelelő email formátum. Túl rövid.".into(),
+        ));
     }
     Ok(())
 }

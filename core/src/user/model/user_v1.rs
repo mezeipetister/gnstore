@@ -69,8 +69,8 @@ impl UserV1 {
         // Max email length
         // Validate User ID length
         if id.len() > id_max_chars || id.len() < id_min_chars {
-            return Err(InternalError(format!(
-                "User ID length should be between {} and {}",
+            return Err(BadRequest(format!(
+                "A felhasználói azonosítónak minimum {} és maximum {} karakternek kell lennie",
                 id_min_chars, id_max_chars
             )));
         }
@@ -82,28 +82,28 @@ impl UserV1 {
             .len()
             > 0
         {
-            return Err(InternalError(format!(
-                "Wrong user ID format. Allowed characters: {}",
+            return Err(BadRequest(format!(
+                "Rossz formátum. Engedélyezett karakterek: {}",
                 allowed_characters.into_iter().collect::<String>()
             )));
         };
         // Validate Email length
         if email.len() > email_max_chars || email.len() < email_min_chars {
-            return Err(InternalError(format!(
-                "Email address length should be between {} and {}",
+            return Err(BadRequest(format!(
+                "Az email cím hosszúsága min {} max {}",
                 email_min_chars, email_max_chars
             )));
         }
         // Validate Email content
         if email.contains("@") == false || email.contains(".") == false {
-            return Err(InternalError(format!(
-                "Invalid Email address. It should contains the following chars: @ and .(dot)"
+            return Err(BadRequest(format!(
+                "Nem megfelelő email cím. Legalább @ jelet és pontot kell tartalmaznia"
             )));
         }
         // Validate Name length
         if name.len() > name_max_chars || name.len() < name_min_chars {
-            return Err(InternalError(format!(
-                "Name length should be between {} and {}",
+            return Err(BadRequest(format!(
+                "A név hosszúságe legalább {} max {} karakter",
                 name_min_chars, name_max_chars
             )));
         }
@@ -127,8 +127,8 @@ impl User for UserV1 {
     // TODO: Remove this, as User ID is unmutable
     fn set_user_id(&mut self, user_id: String) -> AppResult<()> {
         if user_id.len() <= 5 {
-            Err(InternalError(
-                "User ID must has lenght min 5 characters.".into(),
+            Err(BadRequest(
+                "A felhasználói azonosító legalább 5 karakter kell, hogy legyen".into(),
             ))
         } else {
             // Here we set ID as all lowecase
@@ -141,8 +141,8 @@ impl User for UserV1 {
     }
     fn set_user_name(&mut self, name: String) -> AppResult<()> {
         if name.len() < 5 {
-            Err(InternalError(
-                "User name must be longer then 5 character".into(),
+            Err(BadRequest(
+                "A user neve legalább 5 karakter kell, hogy legyen".into(),
             ))
         } else {
             self.name = name.to_string();
@@ -157,9 +157,8 @@ impl User for UserV1 {
             self.email = email;
             Ok(())
         } else {
-            Err(InternalError(
-                "Wrong email format! Email must contains the followings: 
-                @ and . . Len must be higher then 5 characters"
+            Err(BadRequest(
+                "Rossz email formátum. Legyen legalább 5 karakter, és tartalmazzon @ jelet és pontot"
                     .into(),
             ))
         }
@@ -172,9 +171,8 @@ impl User for UserV1 {
             self.phone = phone;
             Ok(())
         } else {
-            Err(InternalError(
-                "Phone number must be higher then 5 characters. It seems to be wrong format."
-                    .into(),
+            Err(BadRequest(
+                "A telefonszám legalább 5 karakter hosszú legyen.".into(),
             ))
         }
     }
@@ -212,7 +210,7 @@ impl User for UserV1 {
             // should manage the trials.
             Err(msg) => {
                 return Err(InternalError(format!(
-                    "New password generated and set, but email send faild. Error message: {}",
+                    "Az új jelszó elkészült, de hiba az email elküldése során. A hibaüzenet: {}",
                     msg
                 )))
             }

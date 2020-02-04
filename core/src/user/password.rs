@@ -129,9 +129,9 @@ pub fn validate_password(password: &str) -> AppResult<()> {
     {
         Ok(())
     } else {
-        Err(InternalError(format!(
-            "Password should be min {} length, should contain min {}
-            lowercase letter, min {} uppercase letter, min {} number",
+        Err(BadRequest(format!(
+            "A jelszó hossza min {} karakter legyen, és tartalmazzon legalább {}
+            kisbetűt, valamint legalább {} db nagybetűt, valamint legalább {} számot",
             min_password_len,
             min_character_lowercase,
             min_character_uppercase,

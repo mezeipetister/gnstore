@@ -82,11 +82,11 @@ where
 // Use it for all the API error response
 #[derive(Serialize, Deserialize, Debug)]
 struct ApiErrorScheme {
-    message: &'static str,
+    message: String,
 }
 
 impl ApiErrorScheme {
-    fn new(message: &'static str) -> Self {
+    fn new(message: String) -> Self {
         ApiErrorScheme { message }
     }
 }
@@ -94,8 +94,8 @@ impl ApiErrorScheme {
 // API Error type
 #[derive(Debug)]
 pub enum ApiError {
-    BadRequest(&'static str),
-    InternalError(&'static str),
+    BadRequest(String),
+    InternalError(String),
     NotFound,
     Unauthorized,
 }
@@ -118,15 +118,24 @@ impl<'r> Responder<'static> for ApiError {
                 ApiError::InternalError(message) => {
                     serde_json::to_string(&ApiErrorScheme::new(message)).unwrap()
                 }
-                ApiError::NotFound => {
-                    serde_json::to_string(&ApiErrorScheme::new("A kért oldal nem található"))
-                        .unwrap()
-                }
+                ApiError::NotFound => serde_json::to_string(&ApiErrorScheme::new(
+                    "A kért oldal nem található".to_owned(),
+                ))
+                .unwrap(),
                 ApiError::Unauthorized => serde_json::to_string(&ApiErrorScheme::new(
-                    "Ön nincs bejelentkezve! Jelentkezzen be!",
+                    "Ön nincs bejelentkezve! Jelentkezzen be!".to_owned(),
                 ))
                 .unwrap(),
             }))
             .ok()
     }
 }
+
+// storaget::Error => core_lib::Error
+// impl From<storaget::Error> for Error {
+//     fn from(err: storaget::Error) -> Self {
+//         match err {
+//             _ => Error::InternalError("Storage error".into()),
+//         }
+//     }
+// }
