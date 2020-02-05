@@ -15,12 +15,41 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::prelude::AppResult;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
+
+pub trait Notifications<T>
+where
+    T: Notification + Serialize + Debug,
+{
+    /// Remove notification by id
+    fn remove_by_id(&mut self, id: usize) -> AppResult<()>;
+    /// Add new notification
+    fn add(&mut self, notification: T) -> AppResult<()>;
+    /// Get notification vector
+    fn get_notifications(&self) -> Vec<T>;
+}
+
+pub trait Notification {
+    /// Set notification to be seen
+    /// Status change
+    fn set_seen(&mut self);
+}
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Notifications {
-    // UserID
+pub struct Notifications1 {
+    /**
+     * UserID => NotificationID
+     * We use the same userID here,
+     * as each user has just maximum
+     * one Notification holder
+     *
+     * If a user has a notification holder,
+     * that could be just one here
+     *
+     */
     id: String,
     /**
      * Notification holder
@@ -28,24 +57,35 @@ pub struct Notifications {
      * the vector item order is persistent.
      * TODO: Check it
      */
-    notification: Vec<Notification>,
+    notification: Vec<Notification1>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Notification {
-    // Custom notification ID
+pub struct Notification1 {
+    /**
+     * Custom notification ID
+     */
     id: usize,
-    // DateTime created
+    /**
+     * DateTime created
+     */
     date_created: DateTime<Utc>,
-    // If it's unread, then it's new
+    /**
+     * If it's unread, then it's new
+     * it's false after seen
+     */
     is_new: bool,
-    // Message. Type? Translation?
+    /**
+     * Message. Type? Translation?
+     */
     subject: String,
-    // Location data to create link in GUI
-    // e.g.: link to a given issue, or a given product
-    // or a given user, or a given order.
-    // Type?
-    location: Option<Location>,
+    /**
+     * Location data to create link in GUI
+     * e.g.: link to a given issue, or a given product
+     * or a given user, or a given order.
+     * Type?
+     */
+    location: Option<Location1>,
 }
 
 /// E.g.:
@@ -57,8 +97,7 @@ pub struct Notification {
 ///
 /// => /a/issue/14#19
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Location {
-    link: Option<String>,
+pub struct Location1 {
     page: String,
     id: Option<String>,
     section: Option<String>,

@@ -25,6 +25,7 @@ pub mod check;
 pub mod email;
 pub mod error;
 pub mod model;
+pub mod notification;
 pub mod prelude;
 pub mod repo;
 pub mod user;
