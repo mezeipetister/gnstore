@@ -100,8 +100,8 @@ pub fn profile_post(
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewPassword {
-    password1: String,
-    password2: String,
+    password1: Option<String>,
+    password2: Option<String>,
 }
 
 #[post("/profile/new_password", data = "<form>")]
@@ -110,20 +110,22 @@ pub fn password_change(
     data: State<DataLoad>,
     form: Json<NewPassword>,
 ) -> Result<StatusOk<()>, ApiError> {
-    if form.password1 != form.password2 {
+    let password1 = match &form.password1 {
+        Some(p) => p,
+        None => return Err(ApiError::BadRequest("Hiányzó adatmező!".to_owned())),
+    };
+    let password2 = match &form.password2 {
+        Some(p) => p,
+        None => return Err(ApiError::BadRequest("Hiányzó adatmező!".to_owned())),
+    };
+    if password1 != password2 {
         return Err(ApiError::BadRequest(
             "A két jelszó nem egyezik meg egymással".to_owned(),
         ));
     }
     match user::get_user_by_id(&data.inner().users, &user.userid()) {
-        Ok(usr) => match usr.update(|u| u.set_password(form.password1.clone())) {
-            Ok(_) => return Ok(StatusOk(())),
-            Err(_) => {
-                return Err(ApiError::InternalError(
-                    "Az új jelszó beállítása sikertelen".to_owned(),
-                ))
-            }
-        },
+        Ok(usr) => usr.update(|u| u.set_password(password1.clone()))?,
         Err(_) => return Err(ApiError::InternalError("Azonosítási hiba".to_owned())),
     }
+    Ok(StatusOk(()))
 }

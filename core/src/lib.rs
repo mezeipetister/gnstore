@@ -24,12 +24,14 @@ extern crate storaget;
 pub mod check;
 pub mod email;
 pub mod error;
+pub mod model;
 pub mod prelude;
 pub mod repo;
 pub mod user;
 
 pub use check::*;
 pub use error::*;
+pub use model::*;
 pub use repo::*;
 pub use user::login::*;
 pub use user::password::*;

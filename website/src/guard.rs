@@ -47,33 +47,26 @@ impl<'a, 'r> FromRequest<'a, 'r> for Login {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Login, ()> {
-        // Add LOGIN REDIRECT IF PATH EXIST
-        // let data = request.guard::<State<DataLoad>>()?;
-        match &request.headers().get_one("token") {
+        let data = request.guard::<State<DataLoad>>()?;
+        let userid: String = match &request.headers().get_one("Token") {
             Some(token) => match verify_token(token) {
-                Some(uid) => {
-                    return Outcome::Success(Login {
-                        userid: uid,
-                        name: "".to_owned(),
-                        email: "".to_owned(),
-                    })
-                }
-                None => return Outcome::Failure((Status::Unauthorized, ())),
+                Ok(userid) => userid,
+                Err(_) => return Outcome::Failure((Status::Unauthorized, ())),
             },
             None => {
                 return Outcome::Failure((Status::Unauthorized, ()));
             }
         };
-        // match user::get_user_by_id(&data.inner().users, &userid) {
-        //     Ok(user) => {
-        //         let login = Login {
-        //             userid: userid,
-        //             name: user.get(|u| u.get_user_name().into()),
-        //             email: user.get(|u| u.get_user_email().into()),
-        //         };
-        //         Outcome::Success(login)
-        //     }
-        //     Err(_) => Outcome::Failure((Status::Unauthorized, ())),
-        // }
+        match user::get_user_by_id(&data.inner().users, &userid) {
+            Ok(user) => {
+                let login = Login {
+                    userid: userid,
+                    name: user.get(|u| u.get_user_name().into()),
+                    email: user.get(|u| u.get_user_email().into()),
+                };
+                Outcome::Success(login)
+            }
+            Err(_) => Outcome::Failure((Status::Unauthorized, ())),
+        }
     }
 }

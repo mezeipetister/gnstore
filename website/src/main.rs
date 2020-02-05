@@ -110,6 +110,11 @@ fn unauthorized(_: &Request<'_>) -> ApiError {
     ApiError::Unauthorized
 }
 
+#[catch(422)]
+fn formError(_: &Request<'_>) -> ApiError {
+    ApiError::InternalError("Minden mező kitöltése kötelező!".to_owned())
+}
+
 fn rocket(data: DataLoad) -> rocket::Rocket {
     let mut methods = std::collections::HashSet::new();
     methods.insert(rocket_cors::Method::from(rocket::http::Method::Post));
@@ -144,7 +149,7 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::profile::password_change
             ],
         )
-        .register(catchers![not_found, unauthorized])
+        .register(catchers![not_found, unauthorized, formError])
 }
 
 pub struct DataLoad {

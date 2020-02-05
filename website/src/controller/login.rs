@@ -65,13 +65,12 @@ pub fn post(
     // User exist
     if let Ok(user) = &data.inner().users.get_by_id(&username) {
         let hash = user.get(|u| u.get_password_hash().to_owned());
-        if let Ok(res) = password::verify_password_from_hash(&password, &hash) {
-            if res {
-                return Ok(StatusOk(UserToken {
-                    username: user.get(|u: &UserV1| u.get_user_name().to_owned()),
-                    token: create_token(&username).unwrap(),
-                }));
-            }
+        let res = password::verify_password_from_hash(&password, &hash)?;
+        if res {
+            return Ok(StatusOk(UserToken {
+                username: user.get(|u: &UserV1| u.get_user_name().to_owned()),
+                token: create_token(&username).unwrap(),
+            }));
         }
     }
 

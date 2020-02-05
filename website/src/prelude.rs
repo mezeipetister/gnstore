@@ -131,11 +131,12 @@ impl<'r> Responder<'static> for ApiError {
     }
 }
 
-// storaget::Error => core_lib::Error
-// impl From<storaget::Error> for Error {
-//     fn from(err: storaget::Error) -> Self {
-//         match err {
-//             _ => Error::InternalError("Storage error".into()),
-//         }
-//     }
-// }
+// core_lib::Error => ApiError
+impl From<core_lib::Error> for ApiError {
+    fn from(err: core_lib::Error) -> Self {
+        match err {
+            core_lib::Error::BadRequest(msg) => ApiError::BadRequest(msg),
+            core_lib::Error::InternalError(msg) => ApiError::InternalError(msg),
+        }
+    }
+}
