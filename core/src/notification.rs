@@ -39,7 +39,7 @@ where
      * Get notification by ID.
      * None if does not exist.
      */
-    fn get_by_id(&self, id: usize) -> Option<&Box<T>>;
+    fn get_by_id(&self, id: usize) -> Option<&T>;
     /**
      * Add notification to NotificationContainer
      */

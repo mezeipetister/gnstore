@@ -142,9 +142,12 @@ where
     /**
      * Get notification by id
      */
-    fn get_by_id(&self, id: usize) -> Option<&Box<T>> {
+    fn get_by_id(&self, id: usize) -> Option<&T> {
         match self.notifications.iter().position(|x| x.get_id() == id) {
-            Some(index) => self.notifications.get(index),
+            Some(index) => match self.notifications.get(index) {
+                Some(result) => Some(result),
+                None => None,
+            },
             None => None,
         }
     }
