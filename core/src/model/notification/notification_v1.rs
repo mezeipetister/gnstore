@@ -160,14 +160,9 @@ impl NotificationContainer for NotificationContainerV1 {
         // Increment counter
         self.notification_counter += 1;
         // Create new notification
-        // let new_notification: Box<dyn Notification> = Box::new(NotificationV1 {
-        //     id: self.notification_counter,
-        //     date_created: Utc::now(),
-        //     is_new: true,
-        //     subject,
-        //     location,
-        // });
-        self.notifications.push(notification);
+        let mut note = notification;
+        note.id = Some(self.notification_counter);
+        self.notifications.push(note);
     }
 }
 
@@ -200,12 +195,12 @@ pub struct NotificationV1 {
 }
 
 impl NotificationV1 {
-    pub fn new() -> Self {
+    pub fn new(subject: String) -> Self {
         NotificationV1 {
             id: None,
             date_created: Utc::now(),
             is_new: true,
-            subject: None,
+            subject: Some(subject),
             location: None,
         }
     }

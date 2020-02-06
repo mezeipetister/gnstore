@@ -20,6 +20,9 @@ use serde::Serialize;
 use std::fmt::Debug;
 
 pub trait NotificationContainer {
+    /**
+     * Trait type
+     */
     type NotificationType;
     /**
      * Remove notification by id
