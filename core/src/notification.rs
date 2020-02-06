@@ -23,15 +23,27 @@ pub trait NotificationContainer<T>
 where
     T: Notification,
 {
-    /// Remove notification by id
+    /**
+     * Remove notification by id
+     */
     fn remove_by_id(&mut self, id: usize) -> AppResult<()>;
-    /// Get notification vector
-    fn get_notifications(&self) -> Vec<T>;
-    /// Check if a given ID is available
+    /**
+     * Get notification vector
+     */
+    fn get_notifications(&self) -> &Vec<Box<T>>;
+    /**
+     * Check if a given ID is available
+     */
     fn check_id_is_free(&self, id: usize) -> bool;
-    /// Get notification by ID.
-    /// None if does not exist.
-    fn get_by_id(&self) -> Option<&T>;
+    /**
+     * Get notification by ID.
+     * None if does not exist.
+     */
+    fn get_by_id(&self, id: usize) -> Option<&Box<T>>;
+    /**
+     * Add notification to NotificationContainer
+     */
+    fn add(&mut self, notification: T);
 }
 
 pub trait Notification: Serialize + Debug {

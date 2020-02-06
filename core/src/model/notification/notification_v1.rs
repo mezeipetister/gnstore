@@ -44,6 +44,9 @@ pub enum Location {
 }
 
 impl Location {
+    /**
+     * Transform location into String
+     */
     pub fn get_location_url(&self) -> String {
         match self {
             Location::None => "".to_owned(),
@@ -54,7 +57,10 @@ impl Location {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct NotificationContainerV1 {
+pub struct NotificationContainerV1<T>
+where
+    T: Notification,
+{
     /**
      * UserID => NotificationID
      * We use the same userID here,
@@ -77,10 +83,13 @@ pub struct NotificationContainerV1 {
      * the vector item order is persistent.
      * TODO: Verify it
      */
-    notifications: Vec<NotificationV1>,
+    notifications: Vec<Box<T>>,
 }
 
-impl NotificationContainerV1 {
+impl<T> NotificationContainerV1<T>
+where
+    T: Notification,
+{
     pub fn new(id: String) -> Self {
         NotificationContainerV1 {
             id,
@@ -88,49 +97,72 @@ impl NotificationContainerV1 {
             notifications: Vec::new(),
         }
     }
-
-    pub fn add(&mut self, subject: String, location: Location) -> AppResult<()> {
-        // Increment counter
-        self.notification_counter += 1;
-        // Create new notification
-        let new_notification = NotificationV1 {
-            id: self.notification_counter,
-            date_created: Utc::now(),
-            is_new: true,
-            subject,
-            location,
-        };
-        self.notifications.push(new_notification);
-        Ok(())
-    }
 }
 
-impl<T> NotificationContainer<T> for NotificationContainerV1
+impl<T> NotificationContainer<T> for NotificationContainerV1<T>
 where
     T: Notification,
 {
+    /**
+     * Remove notification by ID
+     */
     fn remove_by_id(&mut self, id: usize) -> AppResult<()> {
         match self.notifications.iter().position(|x| x.get_id() == id) {
+            // If we have a (first) poistion
             Some(index) => {
                 let _ = self.notifications.remove(index);
                 return Ok(());
             }
+            // If there is no notification with the given ID
             None => Err(Error::BadRequest(
                 "A kért ID-val nem létezik értesítés.".to_owned(),
             )),
         }
     }
-
-    fn get_notifications(&self) -> Vec<T> {
-        Vec::new()
+    /**
+     * Get notifications vector
+     */
+    fn get_notifications(&self) -> &Vec<Box<T>> {
+        &self.notifications
     }
-
+    /**
+     * Check id wether free
+     */
     fn check_id_is_free(&self, id: usize) -> bool {
+        if self
+            .notifications
+            .iter()
+            .position(|x| x.get_id() == id)
+            .is_some()
+        {
+            return true;
+        }
         false
     }
-
-    fn get_by_id(&self) -> Option<&T> {
-        None
+    /**
+     * Get notification by id
+     */
+    fn get_by_id(&self, id: usize) -> Option<&Box<T>> {
+        match self.notifications.iter().position(|x| x.get_id() == id) {
+            Some(index) => self.notifications.get(index),
+            None => None,
+        }
+    }
+    /**
+     * Add new notification to notification container
+     */
+    fn add(&mut self, notification: T) {
+        // Increment counter
+        self.notification_counter += 1;
+        // Create new notification
+        // let new_notification: Box<dyn Notification> = Box::new(NotificationV1 {
+        //     id: self.notification_counter,
+        //     date_created: Utc::now(),
+        //     is_new: true,
+        //     subject,
+        //     location,
+        // });
+        self.notifications.push(Box::new(notification));
     }
 }
 
