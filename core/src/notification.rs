@@ -19,10 +19,8 @@ use crate::prelude::AppResult;
 use serde::Serialize;
 use std::fmt::Debug;
 
-pub trait NotificationContainer<T>
-where
-    T: Notification,
-{
+pub trait NotificationContainer {
+    type NotificationType;
     /**
      * Remove notification by id
      */
@@ -30,7 +28,7 @@ where
     /**
      * Get notification vector
      */
-    fn get_notifications(&self) -> &Vec<Box<T>>;
+    fn get_notifications(&self) -> &Vec<Self::NotificationType>;
     /**
      * Check if a given ID is available
      */
@@ -39,26 +37,41 @@ where
      * Get notification by ID.
      * None if does not exist.
      */
-    fn get_by_id(&self, id: usize) -> Option<&T>;
+    fn get_by_id(&self, id: usize) -> Option<&Self::NotificationType>;
     /**
      * Add notification to NotificationContainer
      */
-    fn add(&mut self, notification: T);
+    fn add(&mut self, notification: Self::NotificationType);
 }
 
 pub trait Notification: Serialize + Debug {
-    /// Set notification to be seen
-    /// Status change
+    // Location type
+    type Location;
+    /**
+     * Set location to notification
+     */
+    fn set_location(&mut self, location: Self::Location);
+    /**
+     * Set notification to be seen
+     * Status change
+     */
     fn set_seen(&mut self);
     /**
      * Get Notification ID
      * it only unique per NotficationContainer
      */
-    fn get_id(&self) -> usize;
+    fn get_id(&self) -> Option<usize>;
     /**
      * returns a generated location url
      * In Angular we should use this url directly
      * for navigation
+     */
+    fn get_location_url(&self) -> Option<String>;
+}
+
+pub trait Location: Serialize + Debug {
+    /**
+     * Transform location into String
      */
     fn get_location_url(&self) -> String;
 }
