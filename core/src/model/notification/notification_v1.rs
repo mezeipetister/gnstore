@@ -143,9 +143,9 @@ impl NotificationContainer for NotificationContainerV1 {
     /**
      * Get notification by id
      */
-    fn get_by_id(&self, id: usize) -> Option<&Self::NotificationType> {
+    fn get_by_id(&mut self, id: usize) -> Option<&mut Self::NotificationType> {
         match self.notifications.iter().position(|x| x.get_id() == id) {
-            Some(index) => match self.notifications.get(index) {
+            Some(index) => match self.notifications.get_mut(index) {
                 Some(result) => Some(result),
                 None => None,
             },
@@ -199,7 +199,7 @@ impl NotificationV1 {
             id: 0,
             date_created: Utc::now(),
             is_new: true,
-            subject: "".to_owned(),
+            subject,
             location: None,
         }
     }

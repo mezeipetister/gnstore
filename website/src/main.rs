@@ -150,8 +150,10 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::profile::profile_get,
                 controller::profile::profile_post,
                 controller::profile::password_change,
-                controller::notification::profile_get,
-                controller::notification::profile_new_get
+                controller::notification::notification_get,
+                controller::notification::notification_new_get,
+                controller::notification::notification_delete,
+                controller::notification::notification_seen
             ],
         )
         .register(catchers![not_found, unauthorized, formError])

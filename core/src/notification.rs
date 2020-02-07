@@ -42,7 +42,7 @@ pub trait NotificationContainer: StorageObject {
      * Get notification by ID.
      * None if does not exist.
      */
-    fn get_by_id(&self, id: usize) -> Option<&Self::NotificationType>;
+    fn get_by_id(&mut self, id: usize) -> Option<&mut Self::NotificationType>;
     /**
      * Add notification to NotificationContainer
      */

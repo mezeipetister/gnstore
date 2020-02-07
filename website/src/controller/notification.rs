@@ -53,7 +53,7 @@ where
 }
 
 #[get("/notification")]
-pub fn profile_get(
+pub fn notification_get(
     user: Login,
     data: State<DataLoad>,
 ) -> Result<StatusOk<Vec<NotificationResponse>>, ApiError> {
@@ -71,7 +71,7 @@ pub fn profile_get(
 }
 
 #[get("/notification/new")]
-pub fn profile_new_get(user: Login, data: State<DataLoad>) -> Result<StatusOk<()>, ApiError> {
+pub fn notification_new_get(user: Login, data: State<DataLoad>) -> Result<StatusOk<()>, ApiError> {
     let mut notification = NotificationV1::new("Hello bello".to_owned());
     notification.set_location(LocationV1::Raw("Demo location".to_owned()));
     match data.inner().notifications.get_by_id(user.userid()) {
@@ -86,5 +86,45 @@ pub fn profile_new_get(user: Login, data: State<DataLoad>) -> Result<StatusOk<()
                 .unwrap();
             Ok(StatusOk(()))
         }
+    }
+}
+
+#[delete("/notification/<id>")]
+pub fn notification_delete(
+    user: Login,
+    data: State<DataLoad>,
+    // Notification ID
+    id: usize,
+) -> Result<StatusOk<()>, ApiError> {
+    match data.inner().notifications.get_by_id(user.userid()) {
+        Ok(container) => {
+            container.update(|c| c.remove_by_id(id))?;
+            Ok(StatusOk(()))
+        }
+        Err(_) => Err(ApiError::BadRequest(
+            "Értesítés azonosító nem található".to_owned(),
+        )),
+    }
+}
+
+#[put("/notification/<id>/seen")]
+pub fn notification_seen(
+    user: Login,
+    data: State<DataLoad>,
+    // Notification ID
+    id: usize,
+) -> Result<StatusOk<()>, ApiError> {
+    match data.inner().notifications.get_by_id(user.userid()) {
+        Ok(container) => {
+            container.update(|c| {
+                if let Some(notification) = c.get_by_id(id) {
+                    notification.set_seen();
+                }
+            });
+            Ok(StatusOk(()))
+        }
+        Err(_) => Err(ApiError::BadRequest(
+            "Értesítés azonosító nem található".to_owned(),
+        )),
     }
 }
