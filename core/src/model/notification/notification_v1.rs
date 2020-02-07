@@ -25,7 +25,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use storaget::*;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum LocationV1 {
     /**
      * When we have no location provided
@@ -57,7 +57,7 @@ impl Location for LocationV1 {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NotificationContainerV1 {
     /**
      * UserID => NotificationID
@@ -84,6 +84,13 @@ pub struct NotificationContainerV1 {
     notifications: Vec<NotificationV1>,
 }
 
+// Implement StorageObject for NotificationContainer
+impl StorageObject for NotificationContainerV1 {
+    fn get_id(&self) -> &str {
+        &self.id
+    }
+}
+
 impl NotificationContainerV1 {
     pub fn new(id: String) -> Self {
         NotificationContainerV1 {
@@ -101,11 +108,7 @@ impl NotificationContainer for NotificationContainerV1 {
      * Remove notification by ID
      */
     fn remove_by_id(&mut self, id: usize) -> AppResult<()> {
-        match self
-            .notifications
-            .iter()
-            .position(|x| x.get_id() == Some(id))
-        {
+        match self.notifications.iter().position(|x| x.get_id() == id) {
             // If we have a (first) poistion
             Some(index) => {
                 let _ = self.notifications.remove(index);
@@ -130,7 +133,7 @@ impl NotificationContainer for NotificationContainerV1 {
         if self
             .notifications
             .iter()
-            .position(|x| x.get_id() == Some(id))
+            .position(|x| x.get_id() == id)
             .is_some()
         {
             return true;
@@ -141,11 +144,7 @@ impl NotificationContainer for NotificationContainerV1 {
      * Get notification by id
      */
     fn get_by_id(&self, id: usize) -> Option<&Self::NotificationType> {
-        match self
-            .notifications
-            .iter()
-            .position(|x| x.get_id() == Some(id))
-        {
+        match self.notifications.iter().position(|x| x.get_id() == id) {
             Some(index) => match self.notifications.get(index) {
                 Some(result) => Some(result),
                 None => None,
@@ -161,17 +160,17 @@ impl NotificationContainer for NotificationContainerV1 {
         self.notification_counter += 1;
         // Create new notification
         let mut note = notification;
-        note.id = Some(self.notification_counter);
+        note.id = self.notification_counter;
         self.notifications.push(note);
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NotificationV1 {
     /**
      * Custom notification ID
      */
-    id: Option<usize>,
+    id: usize,
     /**
      * DateTime created
      */
@@ -184,7 +183,7 @@ pub struct NotificationV1 {
     /**
      * Message. Type? Translation?
      */
-    subject: Option<String>,
+    subject: String,
     /**
      * Location data to create link in GUI
      * e.g.: link to a given issue, or a given product
@@ -197,10 +196,10 @@ pub struct NotificationV1 {
 impl NotificationV1 {
     pub fn new(subject: String) -> Self {
         NotificationV1 {
-            id: None,
+            id: 0,
             date_created: Utc::now(),
             is_new: true,
-            subject: Some(subject),
+            subject: "".to_owned(),
             location: None,
         }
     }
@@ -220,16 +219,25 @@ impl Notification for NotificationV1 {
     /**
      * Get Notification ID
      */
-    fn get_id(&self) -> Option<usize> {
+    fn get_id(&self) -> usize {
         self.id
     }
     /**
      * Transform location data into String
      */
-    fn get_location_url(&self) -> Option<String> {
+    fn get_location(&self) -> Option<String> {
         match &self.location {
             Some(location) => Some(location.get_location_url()),
             None => None,
         }
+    }
+    fn get_date_created(&self) -> DateTime<Utc> {
+        self.date_created
+    }
+    fn get_is_new(&self) -> bool {
+        self.is_new
+    }
+    fn get_subject(&self) -> &str {
+        &self.subject
     }
 }

@@ -16,14 +16,16 @@
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::prelude::AppResult;
+use chrono::prelude::*;
 use serde::Serialize;
 use std::fmt::Debug;
+use storaget::StorageObject;
 
-pub trait NotificationContainer {
+pub trait NotificationContainer: StorageObject {
     /**
      * Trait type
      */
-    type NotificationType;
+    type NotificationType: Notification;
     /**
      * Remove notification by id
      */
@@ -49,7 +51,7 @@ pub trait NotificationContainer {
 
 pub trait Notification: Serialize + Debug {
     // Location type
-    type Location;
+    type Location: Location;
     /**
      * Set location to notification
      */
@@ -63,13 +65,19 @@ pub trait Notification: Serialize + Debug {
      * Get Notification ID
      * it only unique per NotficationContainer
      */
-    fn get_id(&self) -> Option<usize>;
+    fn get_id(&self) -> usize;
+    /**
+     * Get DateTime created
+     */
+    fn get_date_created(&self) -> DateTime<Utc>;
+    fn get_is_new(&self) -> bool;
+    fn get_subject(&self) -> &str;
     /**
      * returns a generated location url
      * In Angular we should use this url directly
      * for navigation
      */
-    fn get_location_url(&self) -> Option<String>;
+    fn get_location(&self) -> Option<String>;
 }
 
 pub trait Location: Serialize + Debug {

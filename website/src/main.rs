@@ -37,6 +37,7 @@ pub mod controller;
 pub mod cors;
 pub mod guard;
 pub mod login;
+pub mod model;
 pub mod prelude;
 
 // use core_lib::prelude::AppResult;
@@ -47,6 +48,8 @@ use core_lib::user::UserV1;
 use guard::*;
 // use login::*;
 use crate::prelude::*;
+use core_lib::model::notification::notification_v1::*;
+use core_lib::notification::*;
 use rocket::http::Method::*;
 use rocket::Request;
 use rocket::Route;
@@ -146,7 +149,9 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::login::reset_password,
                 controller::profile::profile_get,
                 controller::profile::profile_post,
-                controller::profile::password_change
+                controller::profile::password_change,
+                controller::notification::profile_get,
+                controller::notification::profile_new_get
             ],
         )
         .register(catchers![not_found, unauthorized, formError])
@@ -154,11 +159,13 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
 
 pub struct DataLoad {
     users: Storage<UserV1>,
+    notifications: Storage<NotificationContainerV1>,
 }
 
 fn main() -> StorageResult<()> {
     let data = DataLoad {
         users: Storage::load_or_init::<UserV1>("data/users")?,
+        notifications: Storage::load_or_init::<NotificationContainerV1>("data/notifications")?,
     };
     rocket(data).launch();
     Ok(())
