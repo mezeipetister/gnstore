@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
+use chrono::prelude::*;
 use nanoid::nanoid;
 
 pub trait Customer {
@@ -46,6 +47,10 @@ pub trait Customer {
     fn get_email(&self) -> String;
     /// Set email
     fn set_email(&mut self, email: String);
+    /// Get date created
+    fn get_date_created(&self) -> DateTime<Utc>;
+    /// Get created by
+    fn get_created_by(&self) -> String;
 }
 
 pub fn generate_customer_id() -> String {

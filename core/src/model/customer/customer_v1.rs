@@ -37,6 +37,9 @@ pub struct CustomerV1 {
     address: InvoiceAddress,
     phone: String,
     email: String,
+    date_created: DateTime<Utc>,
+    /// Username who created
+    created_by: String,
 }
 
 // Implement StorageObject for NotificationContainer
@@ -98,6 +101,12 @@ impl Customer for CustomerV1 {
     fn set_email(&mut self, email: String) {
         self.email = email;
     }
+    fn get_date_created(&self) -> DateTime<Utc> {
+        self.date_created
+    }
+    fn get_created_by(&self) -> String {
+        self.created_by.clone()
+    }
 }
 
 impl CustomerV1 {
@@ -110,6 +119,7 @@ impl CustomerV1 {
         zip: String,
         location: String,
         street: String,
+        created_by: String,
     ) -> Self {
         CustomerV1 {
             id,
@@ -119,6 +129,8 @@ impl CustomerV1 {
             address: InvoiceAddress::new(zip, location, street),
             email,
             phone,
+            date_created: Utc::now(),
+            created_by,
         }
     }
 }

@@ -48,6 +48,8 @@ use core_lib::user::UserV1;
 use guard::*;
 // use login::*;
 use crate::prelude::*;
+use core_lib::customer;
+use core_lib::model::customer::customer_v1::*;
 use core_lib::model::notification::notification_v1::*;
 use core_lib::notification::*;
 use rocket::http::Method::*;
@@ -153,7 +155,8 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::notification::notification_get,
                 controller::notification::notification_new_get,
                 controller::notification::notification_delete,
-                controller::notification::notification_seen
+                controller::notification::notification_seen,
+                controller::customer::customer_all_get,
             ],
         )
         .register(catchers![not_found, unauthorized, formError])
@@ -162,12 +165,14 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
 pub struct DataLoad {
     users: Storage<UserV1>,
     notifications: Storage<NotificationContainerV1>,
+    customers: Storage<CustomerV1>,
 }
 
 fn main() -> StorageResult<()> {
     let data = DataLoad {
         users: Storage::load_or_init::<UserV1>("data/users")?,
         notifications: Storage::load_or_init::<NotificationContainerV1>("data/notifications")?,
+        customers: Storage::load_or_init::<CustomerV1>("data/customers")?,
     };
     rocket(data).launch();
     Ok(())
