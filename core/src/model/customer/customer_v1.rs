@@ -62,11 +62,8 @@ impl Customer for CustomerV1 {
     fn has_user(&self) -> bool {
         self.related_users.len() > 0
     }
-    fn get_user(&self) -> Option<Vec<String>> {
-        if self.related_users.len() > 0 {
-            return Some(self.related_users.clone());
-        }
-        None
+    fn get_users(&self) -> Vec<String> {
+        self.related_users.clone()
     }
     fn remove_user(&mut self, username: &str) {
         self.related_users.retain(|u| u != username);

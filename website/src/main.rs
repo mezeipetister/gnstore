@@ -157,6 +157,8 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::notification::notification_delete,
                 controller::notification::notification_seen,
                 controller::customer::customer_all_get,
+                controller::customer::customer_new_post,
+                controller::customer::customer_id_get,
             ],
         )
         .register(catchers![not_found, unauthorized, formError])

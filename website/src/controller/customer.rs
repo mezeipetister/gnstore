@@ -39,6 +39,7 @@ pub struct CustomerResponse {
     phone: String,
     tax_number: String,
     has_user: bool,
+    users: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -67,13 +68,14 @@ where
             phone: c.get_phone(),
             tax_number: c.get_tax_number(),
             has_user: c.has_user(),
+            users: c.get_users(),
         }
     }
 }
 
 #[get("/customer/all")]
 pub fn customer_all_get(
-    _: Login,
+    _user: Login,
     data: State<DataLoad>,
 ) -> Result<StatusOk<Vec<CustomerResponse>>, ApiError> {
     let res = data
@@ -83,6 +85,54 @@ pub fn customer_all_get(
         .map(|d| d.get(|c| c.into()))
         .collect::<Vec<CustomerResponse>>();
     Ok(StatusOk(res))
+}
+
+#[get("/customer/<id>")]
+pub fn customer_id_get(
+    _user: Login,
+    data: State<DataLoad>,
+    id: String,
+) -> Result<StatusOk<CustomerResponse>, ApiError> {
+    if let Ok(customer) = data.inner().customers.get_by_id(&id) {
+        return Ok(StatusOk(customer.get(|c| c.into())));
+    }
+    Err(ApiError::NotFound)
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct NewCustomer {
+    name: String,
+    email: String,
+    phone: String,
+    tax_number: String,
+    zip: String,
+    location: String,
+    address: String,
+}
+
+#[post("/customer/new", data = "<c>")]
+pub fn customer_new_post(
+    user: Login,
+    c: Json<NewCustomer>,
+    data: State<DataLoad>,
+) -> Result<StatusOk<CustomerResponse>, ApiError> {
+    let new_customer = customer_v1::CustomerV1::new(
+        generate_customer_id(),
+        c.name.clone(),
+        c.email.clone(),
+        c.phone.clone(),
+        c.tax_number.clone(),
+        c.zip.clone(),
+        c.location.clone(),
+        c.address.clone(),
+        user.userid().to_string(),
+    );
+    match data.inner().customers.add_to_storage(new_customer.clone()) {
+        Ok(_) => Ok(StatusOk((&new_customer).into())),
+        Err(_) => Err(ApiError::InternalError(
+            "Nem sikerült az új vásárlót létrehozni.".to_owned(),
+        )),
+    }
 }
 
 // #[get("/notification/new")]

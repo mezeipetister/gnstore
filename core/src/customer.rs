@@ -28,7 +28,7 @@ pub trait Customer {
     /// Has user connected to customer
     fn has_user(&self) -> bool;
     /// Get user Some() vector of customer, None if empty
-    fn get_user(&self) -> Option<Vec<String>>;
+    fn get_users(&self) -> Vec<String>;
     /// Remove connected user by username
     fn remove_user(&mut self, username: &str);
     /// Get tax number
