@@ -18,10 +18,12 @@ extern crate bcrypt;
 extern crate chrono;
 extern crate lettre;
 extern crate lettre_email;
+extern crate nanoid;
 extern crate rand;
 extern crate storaget;
 
 pub mod check;
+pub mod customer;
 pub mod email;
 pub mod error;
 pub mod model;
