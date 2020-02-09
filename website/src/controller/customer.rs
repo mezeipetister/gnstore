@@ -20,6 +20,7 @@ use crate::prelude::*;
 use crate::DataLoad;
 use chrono::prelude::*;
 use core_lib::customer::*;
+use core_lib::model::customer::customer_v1::CustomerV1;
 use core_lib::model::customer::*;
 use core_lib::prelude::AppResult;
 use core_lib::user;
@@ -95,6 +96,34 @@ pub fn customer_id_get(
 ) -> Result<StatusOk<CustomerResponse>, ApiError> {
     if let Ok(customer) = data.inner().customers.get_by_id(&id) {
         return Ok(StatusOk(customer.get(|c| c.into())));
+    }
+    Err(ApiError::NotFound)
+}
+
+#[post("/customer/<id>", data = "<form>")]
+pub fn customer_id_post(
+    _user: Login,
+    data: State<DataLoad>,
+    id: String,
+    form: Json<CustomerResponse>,
+) -> Result<StatusOk<CustomerResponse>, ApiError> {
+    println!("ID: {}", id);
+    if let Ok(customer) = data.inner().customers.get_by_id(&id) {
+        match customer.update(|c| -> AppResult<CustomerV1> {
+            c.set_name(form.name.clone());
+            c.set_tax_number(form.tax_number.clone());
+            c.set_address(
+                form.address.zip.clone(),
+                form.address.location.clone(),
+                form.address.address.clone(),
+            );
+            c.set_phone(form.phone.clone());
+            c.set_email(form.email.clone());
+            return Ok(c.clone());
+        }) {
+            Ok(c) => return Ok(StatusOk((&c).into())),
+            Err(_) => return Err(ApiError::InternalError("hmmm".to_owned())),
+        }
     }
     Err(ApiError::NotFound)
 }

@@ -159,6 +159,7 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::customer::customer_all_get,
                 controller::customer::customer_new_post,
                 controller::customer::customer_id_get,
+                controller::customer::customer_id_post,
             ],
         )
         .register(catchers![not_found, unauthorized, formError])
