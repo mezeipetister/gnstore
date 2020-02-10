@@ -16,6 +16,7 @@
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
 pub mod customer;
+pub mod issue;
 pub mod login;
 pub mod notification;
 pub mod profile;

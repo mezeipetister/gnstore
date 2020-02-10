@@ -177,6 +177,11 @@ impl Issue {
      * Set new assigned value to @user: String
      */
     pub fn set_assigned_to(&mut self, user: String, created_by: String) {
+        // If the user already assigned, then
+        // return without any change
+        if self.assigned_to == user {
+            return;
+        }
         // Set assigned_to value
         self.assigned_to = user.clone();
         // Create an event from it
@@ -240,6 +245,12 @@ impl Issue {
         self.followed_by.retain(|u| *u != user_id);
     }
     /**
+     * Get user vector of followed_by
+     */
+    pub fn get_followed_by(&self) -> Vec<String> {
+        self.followed_by.clone()
+    }
+    /**
      * Set is_open status to true
      * and create an event about it
      */
@@ -254,6 +265,12 @@ impl Issue {
     pub fn close_issue(&mut self, created_by: String) {
         self.is_open = false;
         self.events.push(Event::new(created_by, EventKind::Closed));
+    }
+    /**
+     * Get is_open status: bool
+     */
+    pub fn get_is_open(&self) -> bool {
+        self.is_open
     }
 }
 

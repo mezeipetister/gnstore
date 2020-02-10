@@ -1,0 +1,204 @@
+// Copyright (C) 2020 Peter Mezei
+//
+// This file is part of GNStore.
+//
+// GNStore is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 of the License, or
+// (at your option) any later version.
+//
+// GNStore is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
+
+use crate::guard::Login;
+use crate::prelude::*;
+use crate::DataLoad;
+use chrono::prelude::*;
+use core_lib::issue::*;
+use core_lib::model::*;
+use core_lib::prelude::AppResult;
+use rocket::State;
+use rocket_contrib::json::Json;
+use serde::{Deserialize, Serialize};
+use storaget::StorageObject;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct NewIssue {
+    /**
+     * Issue title
+     */
+    title: String,
+    /**
+     * Issue description
+     */
+    description: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct IssueShort {
+    id: String,
+    title: String,
+    description: String,
+    created_by: String,
+    date_created: DateTime<Utc>,
+    labels: Vec<Label>,
+    assigned_to: String,
+    comment_count: usize,
+    is_open: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct IssueLong {
+    id: String,
+    title: String,
+    description: String,
+    created_by: String,
+    date_created: DateTime<Utc>,
+    labels: Vec<Label>,
+    assigned_to: String,
+    comment_count: usize,
+    events: Vec<Event>,
+    followed_by: Vec<String>,
+    is_open: bool,
+}
+
+impl From<Issue> for IssueShort {
+    fn from(issue: Issue) -> Self {
+        IssueShort {
+            id: issue.get_id().to_string(),
+            title: issue.get_title(),
+            description: issue.get_description(),
+            created_by: issue.get_created_by(),
+            date_created: issue.get_date_created(),
+            labels: issue.get_labels(),
+            assigned_to: issue.get_assigned_to(),
+            comment_count: issue.get_comment_count(),
+            is_open: issue.get_is_open(),
+        }
+    }
+}
+
+impl From<Issue> for IssueLong {
+    fn from(issue: Issue) -> Self {
+        IssueLong {
+            id: issue.get_id().to_string(),
+            title: issue.get_title(),
+            description: issue.get_description(),
+            created_by: issue.get_created_by(),
+            date_created: issue.get_date_created(),
+            labels: issue.get_labels(),
+            assigned_to: issue.get_assigned_to(),
+            comment_count: issue.get_comment_count(),
+            events: issue.get_events(),
+            followed_by: issue.get_followed_by(),
+            is_open: issue.get_is_open(),
+        }
+    }
+}
+
+#[put("/issue/new", data = "<form>")]
+pub fn user_new_put(
+    user: Login,
+    data: State<DataLoad>,
+    form: Json<NewIssue>,
+) -> Result<StatusOk<IssueShort>, ApiError> {
+    let new_issue = Issue::new(
+        form.title.clone(),
+        form.description.clone(),
+        user.userid().to_string(),
+    );
+    data.inner().issues.add_to_storage(new_issue.clone())?;
+    Ok(StatusOk(new_issue.into()))
+}
+
+#[get("/issue/all")]
+pub fn issue_all_get(
+    _user: Login,
+    data: State<DataLoad>,
+) -> Result<StatusOk<Vec<IssueShort>>, ApiError> {
+    let res = data
+        .inner()
+        .issues
+        .into_iter()
+        .map(|d| d.get(|i| i.clone().into()))
+        .collect::<Vec<IssueShort>>();
+    Ok(StatusOk(res))
+}
+
+#[get("/issue/<id>")]
+pub fn issue_id_get(
+    _user: Login,
+    data: State<DataLoad>,
+    id: String,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    let issue = data.inner().issues.get_by_id(&id)?.clone_data();
+    Ok(StatusOk(issue.clone().into()))
+}
+
+#[post("/issue/<id>/follow")]
+pub fn issue_id_follow_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.follow(user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/unfollow")]
+pub fn issue_id_unfollow_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.unfollow(user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/assign_to")]
+pub fn issue_id_assign_to_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.unfollow(user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+/*
+ * (+) follow / unfollow
+ * ( ) label add / remove
+ * ( ) assigne_to
+ * ( ) comment
+ * ( ) comment like / dislike
+ * ( ) close / open
+ */

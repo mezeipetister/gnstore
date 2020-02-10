@@ -121,6 +121,11 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::user::user_all_get,
                 controller::user::user_id_get,
                 controller::user::user_new_post,
+                controller::issue::user_new_put,
+                controller::issue::issue_all_get,
+                controller::issue::issue_id_get,
+                controller::issue::issue_id_follow_post,
+                controller::issue::issue_id_unfollow_post,
             ],
         )
         .register(catchers![not_found, unauthorized, form_error])
@@ -130,6 +135,7 @@ pub struct DataLoad {
     users: Storage<User>,
     notifications: Storage<NotificationContainer>,
     customers: Storage<Customer>,
+    issues: Storage<Issue>,
 }
 
 fn main() -> StorageResult<()> {
@@ -137,6 +143,7 @@ fn main() -> StorageResult<()> {
         users: Storage::load_or_init::<User>("data/users")?,
         notifications: Storage::load_or_init::<NotificationContainer>("data/notifications")?,
         customers: Storage::load_or_init::<Customer>("data/customers")?,
+        issues: Storage::load_or_init::<Issue>("data/issues")?,
     };
     rocket(data).launch();
     Ok(())
