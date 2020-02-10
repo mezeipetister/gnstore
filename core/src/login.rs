@@ -1,30 +1,20 @@
-// Copyright (C) 2019 Peter Mezei
+// Copyright (C) 2020 Peter Mezei
 //
-// This file is part of Project A.
+// This file is part of GNStore.
 //
-// Project A is free software: you can redistribute it and/or modify
+// GNStore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 2 of the License, or
 // (at your option) any later version.
 //
-// Project A is distributed in the hope that it will be useful,
+// GNStore is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Project A.  If not, see <http://www.gnu.org/licenses/>.
+// along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
-// use crate::prelude::*;
-// use crate::user::model::user_v1::UserV1;
-// use crate::user::User;
-
-/// # Login function
-/// Logically manage login process. Once the user found, and the password
-/// is valid, then we return the user id, or an error message.
-/// ```rust
-/// use core_lib::user::login::login;
-/// let login = login("demo@user.com", "demo_password");
 /// ```
 pub fn login<'a>(email: &'a str, password: &'a str) -> Result<&'a str, String> {
     let _ = email;
