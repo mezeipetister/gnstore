@@ -1,3 +1,5 @@
 pub mod customer;
 pub mod notification;
-pub use notification::notification_v1::NotificationContainerV1;
+
+pub use customer::Customer;
+pub use notification::*;

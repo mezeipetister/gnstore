@@ -16,17 +16,14 @@
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::error::Error;
-use crate::notification::Location;
-use crate::notification::*;
 use crate::prelude::AppResult;
 use chrono::prelude::*;
-use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use storaget::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum LocationV1 {
+pub enum Location {
     /**
      * When we have no location provided
      */
@@ -44,21 +41,21 @@ pub enum LocationV1 {
     Issue { id: usize, section: String },
 }
 
-impl Location for LocationV1 {
+impl Location {
     /**
      * Transform location into String
      */
-    fn get_location_url(&self) -> String {
+    pub fn get_location_url(&self) -> String {
         match self {
-            LocationV1::None => "".to_owned(),
-            LocationV1::Raw(url) => url.to_owned(),
-            LocationV1::Issue { id, section } => format!("/a/issue/{}/{}", id, section),
+            Location::None => "".to_owned(),
+            Location::Raw(url) => url.to_owned(),
+            Location::Issue { id, section } => format!("/a/issue/{}/{}", id, section),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct NotificationContainerV1 {
+pub struct NotificationContainer {
     /**
      * UserID => NotificationID
      * We use the same userID here,
@@ -81,33 +78,29 @@ pub struct NotificationContainerV1 {
      * the vector item order is persistent.
      * TODO: Verify it
      */
-    notifications: Vec<NotificationV1>,
+    notifications: Vec<Notification>,
 }
 
 // Implement StorageObject for NotificationContainer
-impl StorageObject for NotificationContainerV1 {
+impl StorageObject for NotificationContainer {
     fn get_id(&self) -> &str {
         &self.id
     }
 }
 
-impl NotificationContainerV1 {
+impl NotificationContainer {
+    /// New notification container
     pub fn new(id: String) -> Self {
-        NotificationContainerV1 {
+        NotificationContainer {
             id,
             notification_counter: 0,
             notifications: Vec::new(),
         }
     }
-}
-
-impl NotificationContainer for NotificationContainerV1 {
-    // Set type
-    type NotificationType = NotificationV1;
     /**
      * Remove notification by ID
      */
-    fn remove_by_id(&mut self, id: usize) -> AppResult<()> {
+    pub fn remove_by_id(&mut self, id: usize) -> AppResult<()> {
         match self.notifications.iter().position(|x| x.get_id() == id) {
             // If we have a (first) poistion
             Some(index) => {
@@ -123,13 +116,13 @@ impl NotificationContainer for NotificationContainerV1 {
     /**
      * Get notifications vector
      */
-    fn get_notifications(&self) -> &Vec<Self::NotificationType> {
+    pub fn get_notifications(&self) -> &Vec<Notification> {
         &self.notifications
     }
     /**
      * Check id wether free
      */
-    fn check_id_is_free(&self, id: usize) -> bool {
+    pub fn check_id_is_free(&self, id: usize) -> bool {
         if self
             .notifications
             .iter()
@@ -143,7 +136,7 @@ impl NotificationContainer for NotificationContainerV1 {
     /**
      * Get notification by id
      */
-    fn get_by_id(&mut self, id: usize) -> Option<&mut Self::NotificationType> {
+    pub fn get_by_id(&mut self, id: usize) -> Option<&mut Notification> {
         match self.notifications.iter().position(|x| x.get_id() == id) {
             Some(index) => match self.notifications.get_mut(index) {
                 Some(result) => Some(result),
@@ -155,7 +148,7 @@ impl NotificationContainer for NotificationContainerV1 {
     /**
      * Add new notification to notification container
      */
-    fn add(&mut self, notification: Self::NotificationType) {
+    pub fn add(&mut self, notification: Notification) {
         // Increment counter
         self.notification_counter += 1;
         // Create new notification
@@ -166,7 +159,7 @@ impl NotificationContainer for NotificationContainerV1 {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct NotificationV1 {
+pub struct Notification {
     /**
      * Custom notification ID
      */
@@ -190,12 +183,12 @@ pub struct NotificationV1 {
      * or a given user, or a given order.
      * Type?
      */
-    location: Option<LocationV1>,
+    location: Option<Location>,
 }
 
-impl NotificationV1 {
+impl Notification {
     pub fn new(subject: String) -> Self {
-        NotificationV1 {
+        Notification {
             id: 0,
             date_created: Utc::now(),
             is_new: true,
@@ -203,41 +196,37 @@ impl NotificationV1 {
             location: None,
         }
     }
-}
-
-impl Notification for NotificationV1 {
-    type Location = LocationV1;
-    fn set_location(&mut self, location: Self::Location) {
+    pub fn set_location(&mut self, location: Location) {
         self.location = Some(location);
     }
     /**
      * Set seen to false
      */
-    fn set_seen(&mut self) {
+    pub fn set_seen(&mut self) {
         self.is_new = false;
     }
     /**
      * Get Notification ID
      */
-    fn get_id(&self) -> usize {
+    pub fn get_id(&self) -> usize {
         self.id
     }
     /**
      * Transform location data into String
      */
-    fn get_location(&self) -> Option<String> {
+    pub fn get_location(&self) -> Option<String> {
         match &self.location {
             Some(location) => Some(location.get_location_url()),
             None => None,
         }
     }
-    fn get_date_created(&self) -> DateTime<Utc> {
+    pub fn get_date_created(&self) -> DateTime<Utc> {
         self.date_created
     }
-    fn get_is_new(&self) -> bool {
+    pub fn get_is_new(&self) -> bool {
         self.is_new
     }
-    fn get_subject(&self) -> &str {
+    pub fn get_subject(&self) -> &str {
         &self.subject
     }
 }

@@ -19,13 +19,8 @@ use crate::guard::Login;
 use crate::prelude::*;
 use crate::DataLoad;
 use chrono::prelude::*;
-use core_lib::model::notification::*;
-use core_lib::notification::*;
-use core_lib::prelude::AppResult;
-use core_lib::user;
-use core_lib::user::*;
+use core_lib::model::*;
 use rocket::State;
-use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -37,11 +32,8 @@ pub struct NotificationResponse {
     location: Option<String>,
 }
 
-impl<T> From<&T> for NotificationResponse
-where
-    T: Notification,
-{
-    fn from(from: &T) -> Self {
+impl From<&Notification> for NotificationResponse {
+    fn from(from: &Notification) -> Self {
         NotificationResponse {
             id: from.get_id(),
             date_created: from.get_date_created(),
@@ -72,8 +64,8 @@ pub fn notification_get(
 
 #[get("/notification/new")]
 pub fn notification_new_get(user: Login, data: State<DataLoad>) -> Result<StatusOk<()>, ApiError> {
-    let mut notification = NotificationV1::new("Hello bello".to_owned());
-    notification.set_location(LocationV1::Raw("Demo location".to_owned()));
+    let mut notification = Notification::new("Hello bello".to_owned());
+    notification.set_location(Location::Raw("Demo location".to_owned()));
     match data.inner().notifications.get_by_id(user.userid()) {
         Ok(container) => {
             container.update(|c| c.add(notification.clone()));
@@ -82,7 +74,7 @@ pub fn notification_new_get(user: Login, data: State<DataLoad>) -> Result<Status
         Err(_) => {
             data.inner()
                 .notifications
-                .add_to_storage(NotificationContainerV1::new(user.userid().to_string()))
+                .add_to_storage(NotificationContainer::new(user.userid().to_string()))
                 .unwrap();
             Ok(StatusOk(()))
         }

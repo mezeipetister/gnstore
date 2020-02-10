@@ -37,24 +37,13 @@ pub mod controller;
 pub mod cors;
 pub mod guard;
 pub mod login;
-pub mod model;
 pub mod prelude;
 
-// use core_lib::prelude::AppResult;
-// use core_lib::user;
-// use core_lib::user::User;
-use core_lib::user::UserV1;
-// use core_lib::user::*;
-use guard::*;
-// use login::*;
 use crate::prelude::*;
-use core_lib::customer;
-use core_lib::model::customer::customer_v1::*;
-use core_lib::model::notification::notification_v1::*;
-use core_lib::notification::*;
-use rocket::http::Method::*;
+use core_lib::model::*;
+use core_lib::user::UserV1;
+use guard::*;
 use rocket::Request;
-use rocket::Route;
 use rocket_cors::AllowedHeaders;
 use serde::Serialize;
 use storaget::*;
@@ -167,15 +156,15 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
 
 pub struct DataLoad {
     users: Storage<UserV1>,
-    notifications: Storage<NotificationContainerV1>,
-    customers: Storage<CustomerV1>,
+    notifications: Storage<NotificationContainer>,
+    customers: Storage<Customer>,
 }
 
 fn main() -> StorageResult<()> {
     let data = DataLoad {
         users: Storage::load_or_init::<UserV1>("data/users")?,
-        notifications: Storage::load_or_init::<NotificationContainerV1>("data/notifications")?,
-        customers: Storage::load_or_init::<CustomerV1>("data/customers")?,
+        notifications: Storage::load_or_init::<NotificationContainer>("data/notifications")?,
+        customers: Storage::load_or_init::<Customer>("data/customers")?,
     };
     rocket(data).launch();
     Ok(())

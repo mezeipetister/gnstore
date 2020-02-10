@@ -20,11 +20,8 @@ use crate::prelude::*;
 use crate::DataLoad;
 use chrono::prelude::*;
 use core_lib::customer::*;
-use core_lib::model::customer::customer_v1::CustomerV1;
-use core_lib::model::customer::*;
+use core_lib::model::Customer;
 use core_lib::prelude::AppResult;
-use core_lib::user;
-use core_lib::user::*;
 use rocket::State;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
@@ -50,11 +47,8 @@ pub struct CustomerAddress {
     address: String,
 }
 
-impl<T> From<&T> for CustomerResponse
-where
-    T: Customer,
-{
-    fn from(c: &T) -> Self {
+impl From<&Customer> for CustomerResponse {
+    fn from(c: &Customer) -> Self {
         CustomerResponse {
             id: c.get_id(),
             date_created: c.get_date_created(),
@@ -109,7 +103,7 @@ pub fn customer_id_post(
 ) -> Result<StatusOk<CustomerResponse>, ApiError> {
     println!("ID: {}", id);
     if let Ok(customer) = data.inner().customers.get_by_id(&id) {
-        match customer.update(|c| -> AppResult<CustomerV1> {
+        match customer.update(|c| -> AppResult<Customer> {
             c.set_name(form.name.clone());
             c.set_tax_number(form.tax_number.clone());
             c.set_address(
@@ -145,7 +139,7 @@ pub fn customer_new_post(
     c: Json<NewCustomer>,
     data: State<DataLoad>,
 ) -> Result<StatusOk<CustomerResponse>, ApiError> {
-    let new_customer = customer_v1::CustomerV1::new(
+    let new_customer = Customer::new(
         generate_customer_id(),
         c.name.clone(),
         c.email.clone(),
@@ -163,62 +157,3 @@ pub fn customer_new_post(
         )),
     }
 }
-
-// #[get("/notification/new")]
-// pub fn notification_new_get(user: Login, data: State<DataLoad>) -> Result<StatusOk<()>, ApiError> {
-//     let mut notification = NotificationV1::new("Hello bello".to_owned());
-//     notification.set_location(LocationV1::Raw("Demo location".to_owned()));
-//     match data.inner().notifications.get_by_id(user.userid()) {
-//         Ok(container) => {
-//             container.update(|c| c.add(notification.clone()));
-//             Ok(StatusOk(()))
-//         }
-//         Err(_) => {
-//             data.inner()
-//                 .notifications
-//                 .add_to_storage(NotificationContainerV1::new(user.userid().to_string()))
-//                 .unwrap();
-//             Ok(StatusOk(()))
-//         }
-//     }
-// }
-
-// #[delete("/notification/<id>")]
-// pub fn notification_delete(
-//     user: Login,
-//     data: State<DataLoad>,
-//     // Notification ID
-//     id: usize,
-// ) -> Result<StatusOk<()>, ApiError> {
-//     match data.inner().notifications.get_by_id(user.userid()) {
-//         Ok(container) => {
-//             container.update(|c| c.remove_by_id(id))?;
-//             Ok(StatusOk(()))
-//         }
-//         Err(_) => Err(ApiError::BadRequest(
-//             "Értesítés azonosító nem található".to_owned(),
-//         )),
-//     }
-// }
-
-// #[put("/notification/<id>/seen")]
-// pub fn notification_seen(
-//     user: Login,
-//     data: State<DataLoad>,
-//     // Notification ID
-//     id: usize,
-// ) -> Result<StatusOk<()>, ApiError> {
-//     match data.inner().notifications.get_by_id(user.userid()) {
-//         Ok(container) => {
-//             container.update(|c| {
-//                 if let Some(notification) = c.get_by_id(id) {
-//                     notification.set_seen();
-//                 }
-//             });
-//             Ok(StatusOk(()))
-//         }
-//         Err(_) => Err(ApiError::BadRequest(
-//             "Értesítés azonosító nem található".to_owned(),
-//         )),
-//     }
-// }
