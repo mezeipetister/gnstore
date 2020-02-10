@@ -40,9 +40,9 @@ pub struct Issue {
      */
     created_by: String,
     /**
-     * Assigned tag list
+     * Assigned label list
      */
-    tags: Vec<Tag>,
+    labels: Vec<Label>,
     /**
      * Assigned to @userid
      */
@@ -66,7 +66,7 @@ pub struct Issue {
     is_open: bool,
 }
 
-pub struct Tag {
+pub struct Label {
     /**
      * e.g.: important
      */
@@ -95,9 +95,9 @@ pub struct Tag {
     background_color: String,
 }
 
-impl Tag {
+impl Label {
     pub fn new(subject: String, text_color: String, background_color: String) -> Self {
-        Tag {
+        Label {
             subject,
             text_color,
             background_color,
@@ -167,11 +167,11 @@ pub enum EventKind {
     /**
      * New label added
      */
-    LabelAdded(Tag),
+    LabelAdded(Label),
     /**
      * Label removed
      */
-    LabelRemoved(Tag),
+    LabelRemoved(Label),
     /**
      * Issue assigned to another user
      */
