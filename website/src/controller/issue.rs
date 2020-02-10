@@ -305,5 +305,7 @@ pub fn issue_id_comment_dislike_post(
  * (+) assigned_to
  * (+) coment
  * (+) comment like / dislike
+ * ( ) comment notify @ sign detection
+ *     and Notification integration
  * (+) close / open
  */
