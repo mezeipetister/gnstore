@@ -15,26 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate bcrypt;
-extern crate chrono;
-extern crate lettre;
-extern crate lettre_email;
-extern crate nanoid;
-extern crate rand;
-extern crate storaget;
+use nanoid::nanoid;
 
-pub mod check;
-pub mod customer;
-pub mod email;
-pub mod error;
-pub mod issue;
-pub mod login;
-pub mod model;
-pub mod notification;
-pub mod password;
-pub mod prelude;
-pub mod user;
-
-pub use check::*;
-pub use error::*;
-pub use login::*;
+pub fn generate_issue_id() -> String {
+    nanoid!(
+        10,
+        &[
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
+            'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7',
+            '8', '9',
+        ]
+    )
+}
