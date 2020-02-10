@@ -72,6 +72,13 @@ pub struct CommentNew {
     text: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LabelScheme {
+    subject: String,
+    text_color: String,
+    background_color: String,
+}
+
 impl From<Issue> for IssueShort {
     fn from(issue: Issue) -> Self {
         IssueShort {
@@ -102,6 +109,16 @@ impl From<Issue> for IssueLong {
             events: issue.get_events(),
             followed_by: issue.get_followed_by(),
             is_open: issue.get_is_open(),
+        }
+    }
+}
+
+impl From<Label> for LabelScheme {
+    fn from(label: Label) -> Self {
+        LabelScheme {
+            subject: label.get_subject(),
+            text_color: label.get_text_color(),
+            background_color: label.get_background_color(),
         }
     }
 }
@@ -299,9 +316,57 @@ pub fn issue_id_comment_dislike_post(
     }
 }
 
+#[post("/issue/<id>/label/add", data = "<label>")]
+pub fn issue_id_label_add_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+    label: Json<LabelScheme>,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    let lab = Label::new(
+        label.subject.clone(),
+        label.text_color.clone(),
+        label.background_color.clone(),
+    );
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> AppResult<Issue> {
+                i.add_label(lab.clone(), user.userid().to_string());
+                Ok(i.clone())
+            });
+            Ok(StatusOk(mod_issue?.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/label/remove", data = "<label>")]
+pub fn issue_id_label_remove_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+    label: Json<LabelScheme>,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    let lab = Label::new(
+        label.subject.clone(),
+        label.text_color.clone(),
+        label.background_color.clone(),
+    );
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> AppResult<Issue> {
+                i.remove_label(lab.clone(), user.userid().to_string());
+                Ok(i.clone())
+            });
+            Ok(StatusOk(mod_issue?.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
 /*
  * (+) follow / unfollow
- * ( ) label add / remove
+ * (+) label add / remove
  * (+) assigned_to
  * (+) coment
  * (+) comment like / dislike

@@ -138,12 +138,10 @@ impl Issue {
     /**
      * Add label to issue
      */
-    pub fn add_label(&mut self, label: Label, created_by: String) -> AppResult<()> {
+    pub fn add_label(&mut self, label: Label, created_by: String) {
         // Check if the label is already in the label list
         if let Some(_) = self.labels.iter().position(|l| *l == label) {
-            return Err(Error::BadRequest(
-                "Ez a címke már szerepel a címkék között".to_owned(),
-            ));
+            return;
         }
         // If the label is not in the vector,
         // then we add it
@@ -151,7 +149,6 @@ impl Issue {
         // And now add the label to the event list
         self.events
             .push(Event::new(created_by, EventKind::LabelAdded(label)));
-        Ok(())
     }
     /**
      * Remove a given label is if it's in the list
@@ -331,6 +328,15 @@ impl Label {
             text_color,
             background_color,
         }
+    }
+    pub fn get_subject(&self) -> String {
+        self.subject.clone()
+    }
+    pub fn get_text_color(&self) -> String {
+        self.text_color.clone()
+    }
+    pub fn get_background_color(&self) -> String {
+        self.background_color.clone()
     }
 }
 

@@ -131,7 +131,9 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::issue::issue_id_close_post,
                 controller::issue::issue_id_comment_post,
                 controller::issue::issue_id_comment_like_post,
-                controller::issue::issue_id_comment_dislike_post
+                controller::issue::issue_id_comment_dislike_post,
+                controller::issue::issue_id_label_add_post,
+                controller::issue::issue_id_label_remove_post,
             ],
         )
         .register(catchers![not_found, unauthorized, form_error])
