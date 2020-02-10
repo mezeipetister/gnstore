@@ -41,17 +41,11 @@ pub mod prelude;
 
 use crate::prelude::*;
 use core_lib::model::*;
-use core_lib::user::UserV1;
 use guard::*;
 use rocket::Request;
 use rocket_cors::AllowedHeaders;
 use serde::Serialize;
 use storaget::*;
-
-#[derive(Debug, Serialize)]
-struct User {
-    name: String,
-}
 
 #[get("/")]
 fn index() -> String {
@@ -69,30 +63,6 @@ fn api_welcome(_user: Login) -> StatusOk<ApiWelcomeSchema> {
         message: "Welcome to Gardenova API",
     })
 }
-
-// #[get("/long")]
-// fn get_long(_user: Login) -> JsonValue {
-//     std::thread::sleep(std::time::Duration::from_secs(3));
-//     json!({"msg": "It was long!"})
-// }
-
-#[get("/quick")]
-fn get_quick() -> Result<StatusCreated<User>, ApiError> {
-    Ok(StatusCreated(User {
-        name: "Peti".to_owned(),
-    }))
-    // Err(ApiError::BadRequest("Oooo"))
-}
-
-// #[get("/private")]
-// fn private(user: Login) -> JsonValue {
-//     json!({ "msg": format!("Ok, {}", user.userid()) })
-// }
-
-// #[get("/static/<file..>")]
-// pub fn static_file(file: PathBuf) -> Option<NamedFile> {
-//     NamedFile::open(Path::new("static/").join(file)).ok()
-// }
 
 #[catch(404)]
 fn not_found(_: &Request<'_>) -> ApiError {
@@ -155,14 +125,14 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
 }
 
 pub struct DataLoad {
-    users: Storage<UserV1>,
+    users: Storage<User>,
     notifications: Storage<NotificationContainer>,
     customers: Storage<Customer>,
 }
 
 fn main() -> StorageResult<()> {
     let data = DataLoad {
-        users: Storage::load_or_init::<UserV1>("data/users")?,
+        users: Storage::load_or_init::<User>("data/users")?,
         notifications: Storage::load_or_init::<NotificationContainer>("data/notifications")?,
         customers: Storage::load_or_init::<Customer>("data/customers")?,
     };

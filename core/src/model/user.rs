@@ -18,15 +18,14 @@
 use crate::email;
 use crate::email::*;
 use crate::error::Error::*;
+use crate::password::*;
 use crate::prelude::*;
-use crate::user::password::*;
-use crate::user::User;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use storaget::*;
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct UserV1 {
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct User {
     id: String,
     path: Option<String>,
     name: String,
@@ -36,13 +35,13 @@ pub struct UserV1 {
     date_added: DateTime<Utc>,
 }
 
-impl DateCreated for UserV1 {
+impl DateCreated for User {
     fn get_date_created(&self) -> DateTime<Utc> {
         self.date_added
     }
 }
 
-impl UserV1 {
+impl User {
     pub fn new(mut id: String, name: String, mut email: String) -> AppResult<Self> {
         // Conver ID into lowercase anyway.
         id = id.to_lowercase();
@@ -108,7 +107,7 @@ impl UserV1 {
             )));
         }
 
-        Ok(UserV1 {
+        Ok(User {
             id,
             path: None,
             name,
@@ -120,12 +119,12 @@ impl UserV1 {
     }
 }
 
-impl User for UserV1 {
-    fn get_user_id(&self) -> &str {
+impl User {
+    pub fn get_user_id(&self) -> &str {
         &self.id
     }
     // TODO: Remove this, as User ID is unmutable
-    fn set_user_id(&mut self, user_id: String) -> AppResult<()> {
+    pub fn set_user_id(&mut self, user_id: String) -> AppResult<()> {
         if user_id.len() <= 5 {
             Err(BadRequest(
                 "A felhasználói azonosító legalább 5 karakter kell, hogy legyen".into(),
@@ -136,10 +135,10 @@ impl User for UserV1 {
             Ok(())
         }
     }
-    fn get_user_name(&self) -> &str {
+    pub fn get_user_name(&self) -> &str {
         &self.name
     }
-    fn set_user_name(&mut self, name: String) -> AppResult<()> {
+    pub fn set_user_name(&mut self, name: String) -> AppResult<()> {
         if name.len() < 5 {
             Err(BadRequest(
                 "A user neve legalább 5 karakter kell, hogy legyen".into(),
@@ -149,10 +148,10 @@ impl User for UserV1 {
             Ok(())
         }
     }
-    fn get_user_email(&self) -> &str {
+    pub fn get_user_email(&self) -> &str {
         &self.email
     }
-    fn set_user_email(&mut self, email: String) -> AppResult<()> {
+    pub fn set_user_email(&mut self, email: String) -> AppResult<()> {
         if email.contains('@') && email.contains('.') && email.len() > 5 {
             self.email = email;
             Ok(())
@@ -163,10 +162,10 @@ impl User for UserV1 {
             ))
         }
     }
-    fn get_user_phone(&self) -> &str {
+    pub fn get_user_phone(&self) -> &str {
         &self.phone
     }
-    fn set_user_phone(&mut self, phone: String) -> AppResult<()> {
+    pub fn set_user_phone(&mut self, phone: String) -> AppResult<()> {
         if phone.len() > 5 {
             self.phone = phone;
             Ok(())
@@ -176,10 +175,10 @@ impl User for UserV1 {
             ))
         }
     }
-    fn get_password_hash(&self) -> &str {
+    pub fn get_password_hash(&self) -> &str {
         &self.password_hash
     }
-    fn set_password(&mut self, password: String) -> AppResult<()> {
+    pub fn set_password(&mut self, password: String) -> AppResult<()> {
         validate_password(&password)?;
         self.password_hash = hash_password(&password)?;
         Ok(())
@@ -188,7 +187,7 @@ impl User for UserV1 {
     // TODO: Maybe should be at a higher level using User trait reference as input?
     // Maybe this?
     // => fn reset_password<T: User>(user: &T) -> Result<(), String> {...}
-    fn reset_password(&mut self) -> AppResult<()> {
+    pub fn reset_password(&mut self) -> AppResult<()> {
         let new_password = generate_random_password(None)?;
         self.password_hash = hash_password(&new_password)?;
         match email::new(
@@ -245,7 +244,7 @@ impl User for UserV1 {
 //     }
 // }
 
-impl StorageObject for UserV1 {
+impl StorageObject for User {
     fn get_id(&self) -> &str {
         &self.id
     }
@@ -257,8 +256,8 @@ mod tests {
 
     #[test]
     fn test_user_id() {
-        let mut user: UserV1 =
-            UserV1::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User =
+            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
         // At this point ID should be None;
         assert_eq!(user.get_user_id(), "demo");
         // This should return an Err(..)
@@ -271,8 +270,8 @@ mod tests {
 
     #[test]
     fn test_user_email() {
-        let mut user: UserV1 =
-            UserV1::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User =
+            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
 
         assert_eq!(user.set_user_email("demo@demo.com".into()).is_ok(), true); // should be ok
         assert_eq!(user.set_user_email("wohoo".into()).is_err(), true); // should be err
@@ -284,8 +283,8 @@ mod tests {
 
     #[test]
     fn test_user_name() {
-        let mut user: UserV1 =
-            UserV1::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User =
+            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
         assert_eq!(user.get_user_name(), "user");
         assert_eq!(user.set_user_name("abc".into()).is_err(), true); // should be err
         assert_eq!(user.set_user_name("Demo User".into()).is_ok(), true); // should be ok
@@ -295,8 +294,8 @@ mod tests {
 
     #[test]
     fn test_user_phone() {
-        let mut user: UserV1 =
-            UserV1::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User =
+            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
         let phone_number: &str = "+99 (701) 479 397129";
         assert_eq!(user.get_user_phone(), "");
         assert_eq!(user.set_user_phone(phone_number.into()).is_ok(), true); // should be ok
@@ -306,8 +305,8 @@ mod tests {
 
     #[test]
     fn test_user_set_password() {
-        let mut user: UserV1 =
-            UserV1::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User =
+            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
         let password: &str = "HelloWorld749";
         assert_eq!(user.get_password_hash(), ""); // should be None
         assert_eq!(user.set_password("pass".into()).is_ok(), false); // should be err

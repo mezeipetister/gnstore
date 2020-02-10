@@ -26,12 +26,13 @@ pub mod check;
 pub mod customer;
 pub mod email;
 pub mod error;
+pub mod login;
 pub mod model;
 pub mod notification;
+pub mod password;
 pub mod prelude;
 pub mod user;
 
 pub use check::*;
 pub use error::*;
-pub use user::login::*;
-pub use user::password::*;
+pub use login::*;

@@ -18,12 +18,9 @@
 use crate::login::create_token;
 use crate::prelude::*;
 use crate::DataLoad;
-use core_lib::prelude::AppResult;
+use core_lib::model::User;
+use core_lib::password;
 use core_lib::user;
-use core_lib::user::User;
-use core_lib::user::UserV1;
-use core_lib::user::*;
-use login::*;
 use rocket::State;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
@@ -68,7 +65,7 @@ pub fn post(
         let res = password::verify_password_from_hash(&password, &hash)?;
         if res {
             return Ok(StatusOk(UserToken {
-                username: user.get(|u: &UserV1| u.get_user_name().to_owned()),
+                username: user.get(|u: &User| u.get_user_name().to_owned()),
                 token: create_token(&username).unwrap(),
             }));
         }
