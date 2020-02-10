@@ -46,6 +46,14 @@ pub struct Profile {
     customers: Vec<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ProfileNew {
+    username: String,
+    email: String,
+    name: String,
+    phone: String,
+}
+
 impl From<&User> for Profile {
     fn from(user: &User) -> Self {
         Profile {
@@ -78,7 +86,7 @@ pub fn user_all_get(
 pub fn user_new_post(
     user: Login,
     data: State<DataLoad>,
-    form: Json<Profile>,
+    form: Json<ProfileNew>,
 ) -> Result<StatusOk<Profile>, ApiError> {
     let new_user: User = User::new(
         form.username.clone(),
