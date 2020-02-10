@@ -75,7 +75,7 @@ fn unauthorized(_: &Request<'_>) -> ApiError {
 }
 
 #[catch(422)]
-fn formError(_: &Request<'_>) -> ApiError {
+fn form_error(_: &Request<'_>) -> ApiError {
     ApiError::InternalError("Minden mező kitöltése kötelező!".to_owned())
 }
 
@@ -121,7 +121,7 @@ fn rocket(data: DataLoad) -> rocket::Rocket {
                 controller::customer::customer_id_post,
             ],
         )
-        .register(catchers![not_found, unauthorized, formError])
+        .register(catchers![not_found, unauthorized, form_error])
 }
 
 pub struct DataLoad {
