@@ -98,22 +98,47 @@ impl Issue {
             is_open: true,
         }
     }
+    /**
+     * Get title
+     */
     pub fn get_title(&self) -> String {
         self.title.clone()
     }
+    /**
+     * Set title
+     */
     pub fn set_title(&mut self, title: String) {
         self.title = title;
     }
+    /**
+     * Get description
+     */
     pub fn get_description(&self) -> String {
         self.description.clone()
     }
+    /**
+     * Get userid created by
+     */
+    pub fn get_created_by(&self) -> String {
+        self.created_by.clone()
+    }
+    /**
+     * Get date created
+     * DateTime<Utc>
+     */
     pub fn get_date_created(&self) -> DateTime<Utc> {
         self.date_created
     }
+    /**
+     * Get related labels
+     */
     pub fn get_labels(&self) -> Vec<Label> {
         self.labels.clone()
     }
-    pub fn set_label(&mut self, label: Label, created_by: String) -> AppResult<()> {
+    /**
+     * Add label to issue
+     */
+    pub fn add_label(&mut self, label: Label, created_by: String) -> AppResult<()> {
         // Check if the label is already in the label list
         if let Some(_) = self.labels.iter().position(|l| *l == label) {
             return Err(Error::BadRequest(
@@ -128,6 +153,9 @@ impl Issue {
             .push(Event::new(created_by, EventKind::LabelAdded(label)));
         Ok(())
     }
+    /**
+     * Remove a given label is if it's in the list
+     */
     pub fn remove_label(&mut self, label: Label, created_by: String) {
         // Check if the label is in the label list
         if let Some(_) = self.labels.iter().position(|l| *l == label) {
@@ -138,15 +166,61 @@ impl Issue {
                 .push(Event::new(created_by, EventKind::LabelRemoved(label)));
         }
     }
+    /**
+     * Get assigned to value
+     * returns @user: String
+     */
     pub fn get_assigned_to(&self) -> String {
         self.assigned_to.clone()
     }
+    /**
+     * Set new assigned value to @user: String
+     */
     pub fn set_assigned_to(&mut self, user: String, created_by: String) {
         // Set assigned_to value
         self.assigned_to = user.clone();
         // Create an event from it
         self.events
             .push(Event::new(created_by, EventKind::AssignedTo(user)));
+    }
+    /**
+     * Get event vector
+     */
+    pub fn get_events(&self) -> Vec<Event> {
+        self.events.clone()
+    }
+    /**
+     * Get comment count: usize
+     */
+    pub fn get_comment_count(&self) -> usize {
+        self.comment_count
+    }
+    /**
+     * Create a comment and then add it
+     * as a NewComment event.
+     */
+    pub fn add_comment(&mut self, text: String, created_by: String) {
+        // Increase comment_count by one
+        self.comment_count += 1;
+        // Push comment to events
+        self.events.push(Event::new(
+            created_by,
+            EventKind::NewComment(Comment::new(self.comment_count, text)),
+        ));
+    }
+    /**
+     * Looking for comment by a given ID
+     * if we find it, then set like by user_id: String
+     */
+    pub fn like_comment(&mut self, comment_id: usize, user_id: String) {
+        for event in &mut self.events {
+            if let EventKind::NewComment(comment) = &mut event.kind {
+                if comment.get_id() == comment_id {
+                    comment.like(user_id);
+                    return;
+                }
+            }
+        }
     }
     /**
      * Add user_id to the followed_by list
@@ -242,13 +316,34 @@ pub struct Comment {
 }
 
 impl Comment {
-    pub fn new(text: String) -> Self {
+    pub fn new(id: usize, text: String) -> Self {
         Comment {
             // TODO: We need to set ID during the add process
-            id: 0,
+            id,
             liked: Vec::new(),
             text,
         }
+    }
+    /**
+     * Get ID: usize
+     */
+    pub fn get_id(&self) -> usize {
+        self.id
+    }
+    /**
+     * Like comment
+     * Add user_id if it's not in the list
+     */
+    pub fn like(&mut self, user_id: String) {
+        if let None = self.liked.iter().position(|c| *c == user_id) {
+            self.liked.push(user_id);
+        }
+    }
+    /**
+     * Remove userid if its in the list
+     */
+    pub fn unlike(&mut self, user_id: String) {
+        self.liked.retain(|c| *c != user_id);
     }
 }
 
