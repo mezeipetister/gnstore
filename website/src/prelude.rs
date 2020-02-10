@@ -140,3 +140,21 @@ impl From<core_lib::Error> for ApiError {
         }
     }
 }
+
+// storaget::Error => ApiError
+impl From<storaget::Error> for ApiError {
+    fn from(err: storaget::Error) -> Self {
+        match err {
+            storaget::Error::DeserializeError(err) => ApiError::InternalError(err),
+            storaget::Error::InternalError(err) => ApiError::InternalError(err),
+            storaget::Error::IOError(err) => ApiError::InternalError(err),
+            storaget::Error::ObjectNotFound => {
+                ApiError::InternalError("Adatobjektum nem található a megadott ID-val".to_string())
+            }
+            storaget::Error::PathNotFound => {
+                ApiError::InternalError("Storage<T> path not found!".to_string())
+            }
+            storaget::Error::SerializeError(err) => ApiError::InternalError(err),
+        }
+    }
+}
