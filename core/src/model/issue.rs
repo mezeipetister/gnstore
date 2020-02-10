@@ -228,6 +228,20 @@ impl Issue {
         }
     }
     /**
+     * Looking for comment by a given ID
+     * if we find it, then set like by user_id: String
+     */
+    pub fn dislike_comment(&mut self, comment_id: usize, user_id: String) {
+        for event in &mut self.events {
+            if let EventKind::NewComment(comment) = &mut event.kind {
+                if comment.get_id() == comment_id {
+                    comment.unlike(user_id);
+                    return;
+                }
+            }
+        }
+    }
+    /**
      * Add user_id to the followed_by list
      * if the user is already not in the list
      */

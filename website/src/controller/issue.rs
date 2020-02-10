@@ -67,6 +67,11 @@ pub struct IssueLong {
     is_open: bool,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CommentNew {
+    text: String,
+}
+
 impl From<Issue> for IssueShort {
     fn from(issue: Issue) -> Self {
         IssueShort {
@@ -176,8 +181,33 @@ pub fn issue_id_unfollow_post(
     }
 }
 
-#[post("/issue/<id>/assign_to")]
+#[post("/issue/<id>/assign_to/<assigned_to>")]
 pub fn issue_id_assign_to_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+    assigned_to: String,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    // Validate, assigned_to userid exist
+    if let Err(_) = data.inner().users.get_by_id(&assigned_to) {
+        return Err(ApiError::BadRequest(
+            "A megadott user ID nem létezik, így nem lehet hozzárendelni az issue-hoz.".to_owned(),
+        ));
+    }
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.set_assigned_to(assigned_to.clone(), user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/close")]
+pub fn issue_id_close_post(
     user: Login,
     data: State<DataLoad>,
     id: String,
@@ -185,7 +215,82 @@ pub fn issue_id_assign_to_post(
     match data.inner().issues.get_by_id(&id) {
         Ok(issue) => {
             let mod_issue = issue.update(|i| -> Issue {
-                i.unfollow(user.userid().to_string());
+                i.close_issue(user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/open")]
+pub fn issue_id_open_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.open_issue(user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/comment", data = "<form>")]
+pub fn issue_id_comment_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+    form: Json<CommentNew>,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.add_comment(form.text.clone(), user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/comment/<comment_id>/like")]
+pub fn issue_id_comment_like_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+    comment_id: usize,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.like_comment(comment_id, user.userid().to_string());
+                i.clone()
+            });
+            Ok(StatusOk(mod_issue.into()))
+        }
+        Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+#[post("/issue/<id>/comment/<comment_id>/dislike")]
+pub fn issue_id_comment_dislike_post(
+    user: Login,
+    data: State<DataLoad>,
+    id: String,
+    comment_id: usize,
+) -> Result<StatusOk<IssueLong>, ApiError> {
+    match data.inner().issues.get_by_id(&id) {
+        Ok(issue) => {
+            let mod_issue = issue.update(|i| -> Issue {
+                i.dislike_comment(comment_id, user.userid().to_string());
                 i.clone()
             });
             Ok(StatusOk(mod_issue.into()))
@@ -197,8 +302,8 @@ pub fn issue_id_assign_to_post(
 /*
  * (+) follow / unfollow
  * ( ) label add / remove
- * ( ) assigne_to
- * ( ) comment
- * ( ) comment like / dislike
- * ( ) close / open
+ * (+) assigned_to
+ * (+) coment
+ * (+) comment like / dislike
+ * (+) close / open
  */
