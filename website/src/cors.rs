@@ -16,9 +16,8 @@
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
 use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::{ContentType, Header, Method};
+use rocket::http::Header;
 use rocket::{Request, Response};
-use std::io::Cursor;
 
 pub struct CORS();
 
@@ -30,7 +29,7 @@ impl Fairing for CORS {
         }
     }
 
-    fn on_response(&self, request: &Request, response: &mut Response) {
+    fn on_response(&self, _request: &Request, response: &mut Response) {
         response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
         response.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));

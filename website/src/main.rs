@@ -21,12 +21,11 @@
 extern crate rocket;
 extern crate chrono;
 extern crate core_lib;
-extern crate ifeq;
-extern crate num_format;
-#[macro_use]
-extern crate rocket_contrib;
 extern crate crypto;
+extern crate ifeq;
 extern crate jwt;
+extern crate num_format;
+extern crate rocket_contrib;
 extern crate rocket_cors;
 extern crate rustc_serialize;
 extern crate serde;

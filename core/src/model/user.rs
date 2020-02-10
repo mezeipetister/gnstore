@@ -27,22 +27,29 @@ use storaget::*;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct User {
     id: String,
-    path: Option<String>,
     name: String,
     email: String,
     phone: String,
     password_hash: String,
-    date_added: DateTime<Utc>,
+    date_created: DateTime<Utc>,
+    created_by: String,
+    customers: Vec<String>,
 }
 
-impl DateCreated for User {
-    fn get_date_created(&self) -> DateTime<Utc> {
-        self.date_added
-    }
-}
+// impl DateCreated for User {
+//     fn get_date_created(&self) -> DateTime<Utc> {
+//         self.date_created
+//     }
+// }
 
 impl User {
-    pub fn new(mut id: String, name: String, mut email: String) -> AppResult<Self> {
+    pub fn new(
+        mut id: String,
+        name: String,
+        mut email: String,
+        phone: String,
+        created_by: String,
+    ) -> AppResult<Self> {
         // Conver ID into lowercase anyway.
         id = id.to_lowercase();
         // Convert email address into lowercase anyway.
@@ -109,12 +116,14 @@ impl User {
 
         Ok(User {
             id,
-            path: None,
             name,
             email,
-            phone: "".into(),
+            phone,
             password_hash: "".into(),
-            date_added: Utc::now(),
+            date_created: Utc::now(),
+            created_by,
+            // TODO: Attach default customer at initialisation process
+            customers: Vec::new(),
         })
     }
 }
@@ -134,6 +143,9 @@ impl User {
             self.id = user_id.to_lowercase();
             Ok(())
         }
+    }
+    pub fn get_date_created(&self) -> DateTime<Utc> {
+        self.date_created
     }
     pub fn get_user_name(&self) -> &str {
         &self.name
@@ -174,6 +186,12 @@ impl User {
                 "A telefonszám legalább 5 karakter hosszú legyen.".into(),
             ))
         }
+    }
+    pub fn get_created_by(&self) -> String {
+        self.created_by.clone()
+    }
+    pub fn get_customers(&self) -> Vec<String> {
+        self.customers.clone()
     }
     pub fn get_password_hash(&self) -> &str {
         &self.password_hash
@@ -256,8 +274,14 @@ mod tests {
 
     #[test]
     fn test_user_id() {
-        let mut user: User =
-            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User = User::new(
+            "demo".into(),
+            "user".into(),
+            "demo@user.com".into(),
+            "".into(),
+            "".into(),
+        )
+        .unwrap();
         // At this point ID should be None;
         assert_eq!(user.get_user_id(), "demo");
         // This should return an Err(..)
@@ -270,8 +294,14 @@ mod tests {
 
     #[test]
     fn test_user_email() {
-        let mut user: User =
-            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User = User::new(
+            "demo".into(),
+            "user".into(),
+            "demo@user.com".into(),
+            "".into(),
+            "".into(),
+        )
+        .unwrap();
 
         assert_eq!(user.set_user_email("demo@demo.com".into()).is_ok(), true); // should be ok
         assert_eq!(user.set_user_email("wohoo".into()).is_err(), true); // should be err
@@ -283,8 +313,14 @@ mod tests {
 
     #[test]
     fn test_user_name() {
-        let mut user: User =
-            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User = User::new(
+            "demo".into(),
+            "user".into(),
+            "demo@user.com".into(),
+            "".into(),
+            "".into(),
+        )
+        .unwrap();
         assert_eq!(user.get_user_name(), "user");
         assert_eq!(user.set_user_name("abc".into()).is_err(), true); // should be err
         assert_eq!(user.set_user_name("Demo User".into()).is_ok(), true); // should be ok
@@ -294,8 +330,14 @@ mod tests {
 
     #[test]
     fn test_user_phone() {
-        let mut user: User =
-            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User = User::new(
+            "demo".into(),
+            "user".into(),
+            "demo@user.com".into(),
+            "".into(),
+            "".into(),
+        )
+        .unwrap();
         let phone_number: &str = "+99 (701) 479 397129";
         assert_eq!(user.get_user_phone(), "");
         assert_eq!(user.set_user_phone(phone_number.into()).is_ok(), true); // should be ok
@@ -305,8 +347,14 @@ mod tests {
 
     #[test]
     fn test_user_set_password() {
-        let mut user: User =
-            User::new("demo".into(), "user".into(), "demo@user.com".into()).unwrap();
+        let mut user: User = User::new(
+            "demo".into(),
+            "user".into(),
+            "demo@user.com".into(),
+            "".into(),
+            "".into(),
+        )
+        .unwrap();
         let password: &str = "HelloWorld749";
         assert_eq!(user.get_password_hash(), ""); // should be None
         assert_eq!(user.set_password("pass".into()).is_ok(), false); // should be err

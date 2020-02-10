@@ -18,31 +18,53 @@
 use crate::guard::Login;
 use crate::prelude::*;
 use crate::DataLoad;
+use chrono::prelude::*;
+use core_lib::model::*;
 use core_lib::prelude::AppResult;
 use core_lib::user;
-use core_lib::user::*;
 use rocket::State;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
+use storaget::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Profile {
-    username: Option<String>,
-    email: Option<String>,
-    name: Option<String>,
+    username: String,
+    email: String,
+    name: String,
+    phone: String,
+    date_created: DateTime<Utc>,
+    created_by: String,
+    // ================
+    // Important!
+    // ================
+    // Only READONLY
+    // We do not use it to store any value from form
+    // Instead we use direct API call for update customers
+    //      ||
+    //      \/
+    customers: Vec<String>,
+}
+
+impl From<&User> for Profile {
+    fn from(user: &User) -> Self {
+        Profile {
+            username: user.get_id().to_string(),
+            email: user.get_user_email().to_string(),
+            name: user.get_user_name().to_string(),
+            phone: user.get_user_phone().to_string(),
+            date_created: user.get_date_created(),
+            created_by: user.get_created_by().to_string(),
+            customers: user.get_customers(),
+        }
+    }
 }
 
 #[get("/profile")]
 pub fn profile_get(user: Login, data: State<DataLoad>) -> Result<StatusOk<Profile>, ApiError> {
     match user::get_user_by_id(&data.inner().users, &user.userid()) {
         Ok(usr) => {
-            let profile = usr.update(|user| -> Profile {
-                Profile {
-                    username: Some(user.get_user_id().to_owned()),
-                    email: Some(user.get_user_email().to_owned()),
-                    name: Some(user.get_user_name().to_owned()),
-                }
-            });
+            let profile = usr.get(|user| -> Profile { user.into() });
             return Ok(StatusOk(profile));
         }
         Err(_) => {
@@ -59,36 +81,15 @@ pub fn profile_post(
     data: State<DataLoad>,
     form: Json<Profile>,
 ) -> Result<StatusOk<Profile>, ApiError> {
-    let _ = match &form.username {
-        Some(u) => u,
-        None => return Err(ApiError::BadRequest("Hiányzó usernév mező".to_owned())),
-    };
-    let email = match &form.email {
-        Some(e) => e,
-        None => return Err(ApiError::BadRequest("Hiányzó email mező".to_owned())),
-    };
-    let name = match &form.name {
-        Some(n) => n,
-        None => return Err(ApiError::BadRequest("Hiányzó név mező".to_owned())),
-    };
     match user::get_user_by_id(&data.inner().users, &user.userid()) {
         Ok(usr) => {
-            let res = usr.update(|user| -> AppResult<()> {
-                user.set_user_name(name.clone())?;
-                user.set_user_email(email.clone())?;
-                Ok(())
-            });
-            match res {
-                Ok(_) => {
-                    let p = Profile {
-                        username: Some(user.userid().to_owned()),
-                        email: Some(email.clone()),
-                        name: Some(name.clone()),
-                    };
-                    return Ok(StatusOk(p));
-                }
-                Err(_) => return Err(ApiError::BadRequest("Hibás adatok".to_owned())),
-            }
+            let result = usr.update(|user| -> AppResult<User> {
+                user.set_user_name(form.name.clone())?;
+                user.set_user_email(form.email.clone())?;
+                user.set_user_phone(form.phone.clone())?;
+                Ok(user.clone())
+            })?;
+            return Ok(StatusOk((&result).into()));
         }
         Err(_) => {
             return Err(ApiError::InternalError(
