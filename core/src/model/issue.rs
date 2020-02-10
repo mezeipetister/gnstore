@@ -14,3 +14,174 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
+
+use chrono::prelude::*;
+
+pub struct Issue {
+    /**
+     * ID
+     */
+    id: String,
+    /**
+     * Issue title
+     */
+    title: String,
+    /**
+     * Issue description
+     * TODO: should be markdown capable
+     */
+    description: String,
+    /**
+     * Date created, Chrono DateTime<Utc>
+     */
+    date_created: DateTime<Utc>,
+    /**
+     * Created by @userid
+     */
+    created_by: String,
+    /**
+     * Assigned tag list
+     */
+    tags: Vec<Tag>,
+    /**
+     * Assigned to @userid
+     */
+    assigned_to: String,
+    /**
+     * Event list
+     */
+    events: Vec<Event>,
+    /**
+     * Number of comments added
+     */
+    comment_count: usize,
+    /**
+     * Followed by Vec<@userid: String>
+     */
+    followed_by: Vec<String>,
+    /**
+     * Status field
+     * true if open, false if closed issue
+     */
+    is_open: bool,
+}
+
+pub struct Tag {
+    /**
+     * e.g.: important
+     */
+    subject: String,
+    /**
+     * hex with # or css color code
+     * It's important to have a format
+     * that is directly processebly by CSS
+     * without any modification.
+     *
+     * e.g.:    #000000
+     *          white
+     *          green
+     */
+    text_color: String,
+    /**
+     * hex with # or css color code
+     * It's important to have a format
+     * that is directly processebly by CSS
+     * without any modification.
+     *
+     * e.g.:    #000000
+     *          white
+     *          green
+     */
+    background_color: String,
+}
+
+impl Tag {
+    pub fn new(subject: String, text_color: String, background_color: String) -> Self {
+        Tag {
+            subject,
+            text_color,
+            background_color,
+        }
+    }
+}
+
+pub struct Comment {
+    /**
+     * Comment ID
+     * Based on the issue comment_count(er)
+     */
+    id: usize,
+    /**
+     * User IDs who liked the comment
+     */
+    liked: Vec<String>,
+    /**
+     * Comment text
+     * should be markdown ready
+     */
+    text: String,
+}
+
+impl Comment {
+    pub fn new(text: String) -> Self {
+        Comment {
+            // TODO: We need to set ID during the add process
+            id: 0,
+            liked: Vec::new(),
+            text,
+        }
+    }
+}
+
+pub struct Event {
+    /**
+     * Event created at DateTime<Utc>
+     */
+    date_created: DateTime<Utc>,
+    /**
+     * Event created by
+     */
+    created_by: String,
+    /**
+     * EventKind stored here
+     * This contains all the details
+     */
+    kind: EventKind,
+}
+
+impl Event {
+    pub fn new(created_by: String, kind: EventKind) -> Self {
+        Event {
+            date_created: Utc::now(),
+            created_by,
+            kind,
+        }
+    }
+}
+
+pub enum EventKind {
+    /**
+     * When new comment arrives
+     */
+    NewComment(Comment),
+    /**
+     * New label added
+     */
+    LabelAdded(Tag),
+    /**
+     * Label removed
+     */
+    LabelRemoved(Tag),
+    /**
+     * Issue assigned to another user
+     */
+    AssignedTo(String),
+    /**
+     * Issue closed
+     */
+    Closed,
+    /**
+     * Issue re-opened
+     */
+    Opened,
+}
