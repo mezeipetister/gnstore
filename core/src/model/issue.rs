@@ -217,29 +217,35 @@ impl Issue {
      * Looking for comment by a given ID
      * if we find it, then set like by user_id: String
      */
-    pub fn like_comment(&mut self, comment_id: usize, user_id: String) {
+    pub fn like_comment(&mut self, comment_id: usize, user_id: String) -> AppResult<()> {
         for event in &mut self.events {
             if let EventKind::NewComment(comment) = &mut event.kind {
                 if comment.get_id() == comment_id {
                     comment.like(user_id);
-                    return;
+                    return Ok(());
                 }
             }
         }
+        Err(Error::BadRequest(
+            "A megadott comment ID nem létezik".to_owned(),
+        ))
     }
     /**
      * Looking for comment by a given ID
      * if we find it, then set like by user_id: String
      */
-    pub fn dislike_comment(&mut self, comment_id: usize, user_id: String) {
+    pub fn dislike_comment(&mut self, comment_id: usize, user_id: String) -> AppResult<()> {
         for event in &mut self.events {
             if let EventKind::NewComment(comment) = &mut event.kind {
                 if comment.get_id() == comment_id {
                     comment.unlike(user_id);
-                    return;
+                    return Ok(());
                 }
             }
         }
+        Err(Error::BadRequest(
+            "A megadott comment ID nem létezik".to_owned(),
+        ))
     }
     /**
      * Add user_id to the followed_by list

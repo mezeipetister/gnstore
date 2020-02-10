@@ -270,11 +270,11 @@ pub fn issue_id_comment_like_post(
 ) -> Result<StatusOk<IssueLong>, ApiError> {
     match data.inner().issues.get_by_id(&id) {
         Ok(issue) => {
-            let mod_issue = issue.update(|i| -> Issue {
-                i.like_comment(comment_id, user.userid().to_string());
-                i.clone()
+            let mod_issue = issue.update(|i| -> AppResult<Issue> {
+                i.like_comment(comment_id, user.userid().to_string())?;
+                Ok(i.clone())
             });
-            Ok(StatusOk(mod_issue.into()))
+            Ok(StatusOk(mod_issue?.into()))
         }
         Err(_) => Err(ApiError::NotFound),
     }
@@ -289,11 +289,11 @@ pub fn issue_id_comment_dislike_post(
 ) -> Result<StatusOk<IssueLong>, ApiError> {
     match data.inner().issues.get_by_id(&id) {
         Ok(issue) => {
-            let mod_issue = issue.update(|i| -> Issue {
-                i.dislike_comment(comment_id, user.userid().to_string());
-                i.clone()
+            let mod_issue = issue.update(|i| -> AppResult<Issue> {
+                i.dislike_comment(comment_id, user.userid().to_string())?;
+                Ok(i.clone())
             });
-            Ok(StatusOk(mod_issue.into()))
+            Ok(StatusOk(mod_issue?.into()))
         }
         Err(_) => Err(ApiError::NotFound),
     }
