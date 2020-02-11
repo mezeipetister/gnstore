@@ -51,11 +51,15 @@ pub fn notification_get(
 ) -> Result<StatusOk<Vec<NotificationResponse>>, ApiError> {
     match data.inner().notifications.get_by_id(user.userid()) {
         Ok(object) => {
-            let response = object
+            let mut response = object
                 .get(|n| n.get_notifications().to_vec())
                 .iter()
                 .map(|v| v.into())
                 .collect::<Vec<NotificationResponse>>();
+            /*
+             * Order result by date
+             */
+            response.sort_by(|a, b| b.date_created.cmp(&a.date_created));
             Ok(StatusOk(response))
         }
         Err(_) => Ok(StatusOk(Vec::new())),
