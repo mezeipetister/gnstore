@@ -35,10 +35,10 @@ pub enum Location {
     Raw(String),
     /**
      * Issue location
-     * @id: usize => issue ID
+     * @id: String => issue ID
      * @section: String => Section tag #
      */
-    Issue { id: usize, section: String },
+    Issue { id: String, section: Option<String> },
 }
 
 impl Location {
@@ -49,7 +49,14 @@ impl Location {
         match self {
             Location::None => "".to_owned(),
             Location::Raw(url) => url.to_owned(),
-            Location::Issue { id, section } => format!("/a/issue/{}/{}", id, section),
+            Location::Issue { id, section } => format!(
+                "/issue/{}{}",
+                id,
+                match section {
+                    Some(s) => format!("#{}", s),
+                    None => "".to_owned(),
+                }
+            ),
         }
     }
 }

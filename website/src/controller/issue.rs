@@ -44,7 +44,7 @@ pub struct IssueShort {
     title: String,
     description: String,
     created_by: String,
-    date_created: DateTime<Utc>,
+    pub date_created: DateTime<Utc>,
     labels: Vec<Label>,
     assigned_to: String,
     comment_count: usize,
@@ -142,12 +142,16 @@ pub fn issue_all_get(
     _user: Login,
     data: State<DataLoad>,
 ) -> Result<StatusOk<Vec<IssueShort>>, ApiError> {
-    let res = data
+    let mut res = data
         .inner()
         .issues
         .into_iter()
         .map(|d| d.get(|i| i.clone().into()))
         .collect::<Vec<IssueShort>>();
+    /*
+     * Order result by date
+     */
+    res.sort_by(|a, b| b.date_created.cmp(&a.date_created));
     Ok(StatusOk(res))
 }
 
@@ -216,9 +220,34 @@ pub fn issue_id_assign_to_post(
                 i.set_assigned_to(assigned_to.clone(), user.userid().to_string());
                 i.clone()
             });
+            // Send notification to the assigned user
+            let mut notification = Notification::new(format!(
+                "Hozzárendeltek a következő issue-hoz: {}",
+                mod_issue.get_title()
+            ));
+            notification.set_location(Location::Issue {
+                id: id.clone(),
+                section: None,
+            });
+            let _ = notifyUser(user, data.inner(), notification);
             Ok(StatusOk(mod_issue.into()))
         }
         Err(_) => Err(ApiError::NotFound),
+    }
+}
+
+fn notifyUser(user: Login, data: &DataLoad, notification: Notification) -> AppResult<()> {
+    match data.notifications.get_by_id(user.userid()) {
+        Ok(container) => {
+            container.update(|c| c.add(notification.clone()));
+            Ok(())
+        }
+        Err(_) => {
+            data.notifications
+                .add_to_storage(NotificationContainer::new(user.userid().to_string()))
+                .unwrap();
+            Ok(())
+        }
     }
 }
 
