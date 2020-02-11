@@ -418,6 +418,7 @@ impl Event {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "type", content = "body")]
 pub enum EventKind {
     /**
      * When new comment arrives
