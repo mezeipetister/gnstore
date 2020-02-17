@@ -15,18 +15,28 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
-// pub mod cart;
-pub mod customer;
-pub mod issue;
-pub mod notification;
-// pub mod product;
-// pub mod stock;
-pub mod user;
+use chrono::prelude::*;
 
-// pub use cart::*;
-pub use customer::Customer;
-pub use issue::*;
-pub use notification::*;
-// pub use product::*;
-// pub use stock::*;
-pub use user::*;
+pub struct Product {
+    id: String,
+    sku: String,
+    barcode: String,
+    name: String,
+    vat: Option<usize>,
+    description: String,
+    created_by: String,
+    date_created: DateTime<Utc>,
+}
+
+pub struct Event {
+    created_by: String,
+    date_created: DateTime<Utc>,
+    kind: Vec<EventKind>,
+}
+
+pub enum EventKind {
+    SkuChanged { to: String },
+    BarcodeChanged { to: String },
+    NameChanged { to: String },
+    VatChanged { to: usize },
+}

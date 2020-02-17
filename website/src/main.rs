@@ -41,9 +41,11 @@ pub mod prelude;
 use crate::prelude::*;
 use core_lib::model::*;
 use guard::*;
+use rocket::response::NamedFile;
 use rocket::Request;
 use rocket_cors::AllowedHeaders;
 use serde::Serialize;
+use std::path::{Path, PathBuf};
 use storaget::*;
 
 #[get("/")]
@@ -62,6 +64,11 @@ fn api_welcome(_user: Login) -> StatusOk<ApiWelcomeSchema> {
         message: "Welcome to Gardenova API",
     })
 }
+
+// #[get("/<file..>")]
+// pub fn static_file(file: PathBuf) -> Option<NamedFile> {
+//     NamedFile::open(Path::new("static/").join(file)).ok()
+// }
 
 #[catch(404)]
 fn not_found(_: &Request<'_>) -> ApiError {

@@ -15,18 +15,24 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
-// pub mod cart;
-pub mod customer;
-pub mod issue;
-pub mod notification;
-// pub mod product;
-// pub mod stock;
-pub mod user;
+use chrono::prelude::*;
 
-// pub use cart::*;
-pub use customer::Customer;
-pub use issue::*;
-pub use notification::*;
-// pub use product::*;
-// pub use stock::*;
-pub use user::*;
+pub struct Cart {
+    id: String,
+    created_by: String,
+    date_created: DateTime<Utc>,
+    is_closed: bool,
+    item_count: usize,
+    cart_items: Vec<CartItem>,
+    total_net_price: usize,
+    total_gross_price: usize,
+    invoice: Option<String>,
+}
+
+pub struct CartItem {
+    product_id: String,
+    product_name: String,
+    piece: usize,
+    net_price: usize,
+    vat: usize,
+}

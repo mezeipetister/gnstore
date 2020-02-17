@@ -19,6 +19,7 @@ use crate::guard::Login;
 use crate::prelude::*;
 use crate::DataLoad;
 use chrono::prelude::*;
+use core_lib::error::Error;
 use core_lib::model::*;
 use core_lib::prelude::AppResult;
 use rocket::State;
@@ -229,22 +230,27 @@ pub fn issue_id_assign_to_post(
                 id: id.clone(),
                 section: None,
             });
-            let _ = notifyUser(user, data.inner(), notification);
+            let _ = notify_user(&assigned_to, data.inner(), notification);
             Ok(StatusOk(mod_issue.into()))
         }
         Err(_) => Err(ApiError::NotFound),
     }
 }
 
-fn notifyUser(user: Login, data: &DataLoad, notification: Notification) -> AppResult<()> {
-    match data.notifications.get_by_id(user.userid()) {
+fn notify_user(user: &str, data: &DataLoad, notification: Notification) -> AppResult<()> {
+    if let Err(_) = data.users.get_by_id(user) {
+        return Err(Error::BadRequest(
+            "a megadott user nem létezik, nem tudjuk értesíteni".to_owned(),
+        ));
+    }
+    match data.notifications.get_by_id(user) {
         Ok(container) => {
             container.update(|c| c.add(notification.clone()));
             Ok(())
         }
         Err(_) => {
             data.notifications
-                .add_to_storage(NotificationContainer::new(user.userid().to_string()))
+                .add_to_storage(NotificationContainer::new(user.to_string()))
                 .unwrap();
             Ok(())
         }
