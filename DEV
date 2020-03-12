@@ -1,2 +1,110 @@
-Storage
-    filter -> order -> pagination
+                                Gardenova STORE
+                               DEV documentation
+
+                                      ***
+
+                         Code development documentation
+                         & notes, changes, future plans
+
+                                 by Peter Mezei
+                                      2020
+
+
+                                       1.
+                                  First design
+
+Design elements:
+
+    The list below represents the required modules as a development overview. In
+    short terms all the required main funcionality are listed, if there is any
+    unanswered question its display after a ? mark.
+    
+    Development requirements, details, data structures and business logics are
+    in separated sections.
+
+    * Product
+        - Register new product
+        - Find product
+        - Get product information
+        ? How to manage different KIND of products?
+          e.g.: / agri products with security rating
+                / regular products without any specific needs
+                / service without stock e.g.: delivery cost
+
+    * Stock
+        - Managing multiple stock(s)
+        - Get stock data
+        - Move item between stock
+        - Put product into stock
+        - Inventory
+        - Inventory control
+
+    * Reservation
+        - Managin product reservation
+          between stocks, customers and carts
+
+    * Supply / Order
+        - Order product(s)
+        - Checking order / Delivery status
+        - Managing suppliers
+        - Managing product / supplier / price information
+        - Managing product prices
+        - Product order and price history
+
+    * Sale
+        - POS Sale
+        - Managing customer complaints,
+          product return
+        - Invoices; create, list, find and download
+
+    * Cart
+        - Containing products
+        - Conver cart to other items like purchase,
+          or order.
+
+    * Petty cash
+        - Managing cash per cassa
+        - Money IN
+        - Money OUT
+
+    * Issue
+        - Create issue
+        - List and edit issue(s)
+        - Managing issue status, tags and owner
+
+    * Notification
+        - Create notification
+        - List and delete notification
+        - Managing location data in notification
+
+    * User
+        - Create
+        - List users
+        - Find user
+
+    * Customer
+        - Create
+        - List customers
+        - Find customer
+
+1.1 Product
+
+    SCHEMA
+    ======
+        * ID
+        * Name
+        * Description
+        * Price
+        * VAT
+        * Stock
+        * Images[]
+
+1.2 Stock
+
+    SCHEMA
+    ======
+        * ID
+        * Name
+        * Description
+
+1.3 Petty cash

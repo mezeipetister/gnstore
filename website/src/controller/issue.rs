@@ -25,7 +25,8 @@ use core_lib::prelude::AppResult;
 use rocket::State;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
-use storaget::StorageObject;
+use storaget::Storage;
+use storaget::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NewIssue {
@@ -221,38 +222,44 @@ pub fn issue_id_assign_to_post(
                 i.set_assigned_to(assigned_to.clone(), user.userid().to_string());
                 i.clone()
             });
-            // Send notification to the assigned user
-            let mut notification = Notification::new(format!(
-                "Hozzárendeltek a következő issue-hoz: {}",
-                mod_issue.get_title()
-            ));
-            notification.set_location(Location::Issue {
-                id: id.clone(),
-                section: None,
-            });
-            let _ = notify_user(&assigned_to, data.inner(), notification);
+            if user.userid() != &assigned_to {
+                // Send notification to the assigned user
+                let mut notification = Notification::new(format!(
+                    "Hozzárendeltek a következő issue-hoz: {}",
+                    mod_issue.get_title()
+                ));
+                notification.set_location(Location::Issue {
+                    id: id.clone(),
+                    section: None,
+                });
+                let _ = data
+                    .inner()
+                    .notifications
+                    .notify_user(&assigned_to, notification);
+            }
             Ok(StatusOk(mod_issue.into()))
         }
         Err(_) => Err(ApiError::NotFound),
     }
 }
 
-fn notify_user(user: &str, data: &DataLoad, notification: Notification) -> AppResult<()> {
-    if let Err(_) = data.users.get_by_id(user) {
-        return Err(Error::BadRequest(
-            "a megadott user nem létezik, nem tudjuk értesíteni".to_owned(),
-        ));
-    }
-    match data.notifications.get_by_id(user) {
-        Ok(container) => {
-            container.update(|c| c.add(notification.clone()));
-            Ok(())
-        }
-        Err(_) => {
-            data.notifications
-                .add_to_storage(NotificationContainer::new(user.to_string()))
-                .unwrap();
-            Ok(())
+pub trait NF {
+    fn notify_user(&self, userid: &str, notification: Notification) -> AppResult<()>;
+}
+
+impl NF for Storage<NotificationContainer> {
+    fn notify_user(&self, userid: &str, notification: Notification) -> AppResult<()> {
+        match self.get_by_id(userid) {
+            Ok(container) => {
+                container.update(|c| c.add(notification.clone()));
+                Ok(())
+            }
+            Err(_) => {
+                let mut notification_object = NotificationContainer::new(userid.to_string());
+                notification_object.add(notification.clone());
+                self.add_to_storage(notification_object)?;
+                Ok(())
+            }
         }
     }
 }
