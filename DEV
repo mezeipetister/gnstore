@@ -10,6 +10,20 @@
                                       2020
 
 
+Issues to solve
+
+    * Product images
+    * Reservation logic?
+    * Connection with BIT
+    * Invoice management
+    * Managing discounts
+    * Cost calculation. FIFO?
+    * Managing insecticide special data
+      e.g.: category (I, II, III)
+    * Managing products expiration date (best before)
+    * 
+
+
                                        1.
                                   First design
 
@@ -87,6 +101,93 @@ Design elements:
         - List customers
         - Find customer
 
+    * Customer CARD
+
+Business Logic
+
+    Application design follows a modular design, with modules with simple
+    responsibility. Each module can be responsible for only one area. This way
+    we can use a microservice like design. Even when we have just one complex
+    app, but with well demarcated areas.
+
+    Product
+
+        This is the section where we store all the product related data; except
+        price and stock details. As we would like to have a multy-stock system
+        the stock data would be stored under the stock module.
+
+        Main product data:
+
+            * ID
+            * SKU  <---------- available?
+            * Barcode   <------------------ what if missing 
+            * Name                          or multiple barcode?
+            * Description
+            * Images  <-----------
+                                 |
+                                 *-- Do we need now?
+                                     How to manage multiple images?
+                                     How to set the cover image?
+
+        
+        Price, VAT should be placed in the SUPPLY module,
+        Stock details should be placed under STOCK module.
+
+        Required methods:
+        
+            * New product
+            * Update SKU
+            * Update Barcode
+            * Update Name
+            * Update Description
+            * Update Image
+            * Set new image
+             
+
+    Stock
+
+        Module for storing and managing product stocks. It should manage
+        multiple stock, and store a product over several stock(s). It should be
+        able to get a product into stock, managing sales, and all the product
+        INS and OUTS.
+
+        Requirements:
+
+            * Having multiple stocks
+            * Moving product into stocks
+            * Easy product to stock process
+            * Managing product sales and other outs
+            * Doing inventory control
+
+        Questions:
+
+            * Should we manage history here?
+              e.g.: all the product moves per product?
+                    or just the final numbers?
+            * How to manage reservation?
+            * How to manage history?
+
+        Stock data:
+
+            * ID
+            * Name -> e.g. LOCATION / STOCK_NAME
+            * Descreption
+            * ...
+
+    Petty CASH
+
+        Module for managin CASH registers cash data. All the cash IN and OUT
+        should present here. All the sales with CASH and other CASH IN and OUT
+        should be here in an accountable way.
+
+            Requirements:
+
+                * Cash IN
+                * Cash OUT
+                * Cash balance
+                * Multiple petty cash(es)
+                * 
+
 1.1 Product
 
     SCHEMA
@@ -108,3 +209,42 @@ Design elements:
         * Description
 
 1.3 Petty cash
+
+                                     IDEAS
+
+Product TAGS
+
+    Powerful tag system to manage additional information per product. Using for
+    additional metadata management. Product status, availability, pesticide
+    hazard category, food deadline (time to wait after treatment)
+
+    ?   Can we use it maybe to sign an insecticide hazard category?
+        Or this information should be a core part of the product?
+
+    *   Using a TAG to sign the product is NOT_AVAILABLE
+
+    *   Using automatic tagging, e.g. when all the product source has a sign NOT
+        AVAILABLE, so based on the registered suppliers, we cannot order a
+        product, this NOT_AVAILABLE tag could be added automatically.
+
+Notification as a part of USER
+
+    ?   Maybe the notification module could be a part of the USER OBJECT.
+        In this way it would be easier to send a notification to a found user.
+
+PRINT trait
+
+    *   When we have an event, or object that might be required to be able to
+        print as a PDF document, it could be a nice solution to define a PRINT
+        trait, and implement it whenever an object needs to be printed. This
+        Trait could process the OBJECT data, and using template would create a
+        BLOB content, and returns it. In this way the client could create the
+        PDF on the fly.
+
+        e.g.    Cart to print
+                Order to print
+                Cash IN / OUT event to print
+                Delivery NOTE between stock movements
+
+        This approach could simplify the printing process, without the need of
+        custom implementations and templates.
