@@ -89,7 +89,7 @@ pub struct NotificationContainer {
 }
 
 // Implement StorageObject for NotificationContainer
-impl StorageObject for NotificationContainer {
+impl VecPackMember for NotificationContainer {
     fn get_id(&self) -> &str {
         &self.id
     }

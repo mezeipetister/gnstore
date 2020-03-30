@@ -18,29 +18,10 @@
 use crate::email;
 use crate::email::*;
 use crate::error::Error::*;
+pub use crate::model::version::user::v1::User;
 use crate::password::*;
 use crate::prelude::*;
 use chrono::prelude::*;
-use serde::{Deserialize, Serialize};
-use storaget::*;
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct User {
-    id: String,
-    name: String,
-    email: String,
-    phone: String,
-    password_hash: String,
-    date_created: DateTime<Utc>,
-    created_by: String,
-    customers: Vec<String>,
-}
-
-// impl DateCreated for User {
-//     fn get_date_created(&self) -> DateTime<Utc> {
-//         self.date_created
-//     }
-// }
 
 impl User {
     pub fn new(
@@ -233,38 +214,6 @@ impl User {
             }
         }
         Ok(())
-    }
-}
-
-/**
- * StorageObject implementation for UserObject
- */
-// impl storage::StorageObject for UserV1 {
-//     fn get_id(&self) -> &str {
-//         &self.id
-//     }
-//     // TODO: Fix this one!
-//     fn reload(&mut self) -> AppResult<()> {
-//         Ok(())
-//     }
-//     fn get_path(&self) -> Option<&str> {
-//         match &self.path {
-//             Some(path) => Some(path.as_ref()),
-//             None => None,
-//         }
-//     }
-//     fn set_path(&mut self, path: &str) -> AppResult<()> {
-//         self.path = Some(path.into());
-//         Ok(())
-//     }
-//     fn get_date_created(&self) -> DateTime<Utc> {
-//         self.date_added
-//     }
-// }
-
-impl StorageObject for User {
-    fn get_id(&self) -> &str {
-        &self.id
     }
 }
 

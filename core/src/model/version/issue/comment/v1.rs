@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Peter Mezei
+// Copyright (C) 2020 peter
 //
 // This file is part of GNStore.
 //
@@ -15,19 +15,33 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
-// pub mod cart;
-pub mod customer;
-pub mod issue;
-pub mod notification;
-// pub mod product;
-// pub mod stock;
-pub mod user;
-pub mod version;
+use serde::{Deserialize, Serialize};
 
-// pub use cart::*;
-pub use customer::Customer;
-pub use issue::*;
-pub use notification::*;
-// pub use product::*;
-// pub use stock::*;
-pub use user::*;
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Comment {
+    /**
+     * Comment ID
+     * Based on the issue comment_count(er)
+     */
+    pub id: usize,
+    /**
+     * User IDs who liked the comment
+     */
+    pub liked: Vec<String>,
+    /**
+     * Comment text
+     * should be markdown ready
+     */
+    pub text: String,
+}
+
+impl Comment {
+    pub fn new(id: usize, text: String) -> Self {
+        Comment {
+            // TODO: We need to set ID during the add process
+            id,
+            liked: Vec::new(),
+            text,
+        }
+    }
+}

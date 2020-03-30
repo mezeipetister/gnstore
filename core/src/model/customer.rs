@@ -15,33 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
+pub use crate::model::version::customer::v1::*;
 use chrono::prelude::*;
-use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
-use storaget::*;
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Customer {
-    /// ID for customer
-    id: String,
-    /// Vector of usernames
-    related_users: Vec<String>,
-    name: String,
-    tax_number: String,
-    address: InvoiceAddress,
-    phone: String,
-    email: String,
-    date_created: DateTime<Utc>,
-    /// Username who created
-    created_by: String,
-}
-
-// Implement StorageObject for NotificationContainer
-impl StorageObject for Customer {
-    fn get_id(&self) -> &str {
-        &self.id
-    }
-}
 
 impl Customer {
     pub fn new(
@@ -120,22 +95,5 @@ impl Customer {
     }
     pub fn get_created_by(&self) -> String {
         self.created_by.clone()
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct InvoiceAddress {
-    zip: String,
-    location: String,
-    street: String,
-}
-
-impl InvoiceAddress {
-    pub fn new(zip: String, location: String, street: String) -> Self {
-        InvoiceAddress {
-            zip,
-            location,
-            street,
-        }
     }
 }

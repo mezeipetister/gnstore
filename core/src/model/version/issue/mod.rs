@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Peter Mezei
+// Copyright (C) 2020 peter
 //
 // This file is part of GNStore.
 //
@@ -15,19 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
-// pub mod cart;
-pub mod customer;
-pub mod issue;
-pub mod notification;
-// pub mod product;
-// pub mod stock;
-pub mod user;
-pub mod version;
-
-// pub use cart::*;
-pub use customer::Customer;
-pub use issue::*;
-pub use notification::*;
-// pub use product::*;
-// pub use stock::*;
-pub use user::*;
+pub mod comment;
+pub mod event;
+pub mod label;
+pub mod v1;

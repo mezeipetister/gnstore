@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Peter Mezei
+// Copyright (C) 2020 peter
 //
 // This file is part of GNStore.
 //
@@ -15,29 +15,33 @@
 // You should have received a copy of the GNU General Public License
 // along with GNStore.  If not, see <http://www.gnu.org/licenses/>.
 
+pub use crate::model::version::issue::event::eventkind::v1::EventKind;
 use chrono::prelude::*;
+use serde::{Deserialize, Serialize};
 
-pub struct Product {
-    id: String,
-    // Product Manufacturer ID
-    sku: String,
-    barcode: String,
-    name: String,
-    vat: Option<usize>,
-    description: String,
-    created_by: String,
-    date_created: DateTime<Utc>,
-}
-
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Event {
-    created_by: String,
-    date_created: DateTime<Utc>,
-    kind: Vec<EventKind>,
+    /**
+     * Event created at DateTime<Utc>
+     */
+    pub date_created: DateTime<Utc>,
+    /**
+     * Event created by
+     */
+    pub created_by: String,
+    /**
+     * EventKind stored here
+     * This contains all the details
+     */
+    pub kind: EventKind,
 }
 
-pub enum EventKind {
-    SkuChanged { to: String },
-    BarcodeChanged { to: String },
-    NameChanged { to: String },
-    VatChanged { to: usize },
+impl Event {
+    pub fn new(created_by: String, kind: EventKind) -> Self {
+        Event {
+            date_created: Utc::now(),
+            created_by,
+            kind,
+        }
+    }
 }
